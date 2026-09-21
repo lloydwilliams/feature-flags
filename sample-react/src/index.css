@@ -55,3 +55,20 @@ body {
   background: light-dark(#fef2f2, #300b0b);
   color: light-dark(#b91c1c, #fca5a5);
 }
+
+.logo {
+  display: block;
+  width: 96px;
+  height: auto;
+  margin: 0 auto 1rem;
+}
+
+.flag-readout {
+  margin-top: 1rem;
+  font-size: 0.8125rem;
+  opacity: 0.6;
+}
+
+.flag-readout code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
