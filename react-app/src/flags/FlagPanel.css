@@ -1,0 +1,215 @@
+.ff-panel-root {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  font-family:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 13px;
+  color-scheme: light dark;
+}
+
+.ff-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid rgb(120 120 130 / 0.35);
+  border-radius: 999px;
+  background: light-dark(#ffffff, #1c1c20);
+  color: light-dark(#18181b, #f4f4f5);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.18);
+}
+
+.ff-toggle:hover {
+  border-color: rgb(120 120 130 / 0.6);
+}
+
+.ff-count {
+  min-width: 1.25rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: #6d4aff;
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.25rem;
+  text-align: center;
+}
+
+.ff-panel {
+  width: min(24rem, calc(100vw - 2rem));
+  max-height: min(30rem, calc(100vh - 6rem));
+  overflow-y: auto;
+  padding: 0.75rem 0.9rem 0.9rem;
+  border: 1px solid rgb(120 120 130 / 0.3);
+  border-radius: 0.75rem;
+  background: light-dark(#ffffff, #16161a);
+  color: light-dark(#18181b, #f4f4f5);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.28);
+  text-align: left;
+}
+
+.ff-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.ff-panel__head h2 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.ff-panel__head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ff-source {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.ff-source--error {
+  color: #dc2626;
+  opacity: 1;
+}
+
+.ff-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #6d4aff;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.ff-link:disabled {
+  color: inherit;
+  opacity: 0.35;
+  cursor: default;
+  text-decoration: none;
+}
+
+.ff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ff-row {
+  padding: 0.6rem 0;
+  border-top: 1px solid rgb(120 120 130 / 0.18);
+}
+
+.ff-row:first-child {
+  border-top: 0;
+}
+
+.ff-row__main {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ff-key {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ff-desc {
+  margin: 0.2rem 0 0.45rem;
+  font-size: 11.5px;
+  line-height: 1.35;
+  opacity: 0.65;
+}
+
+.ff-row__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.ff-fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ff-fieldset:disabled {
+  opacity: 0.5;
+}
+
+.ff-badge {
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.25rem;
+  background: rgb(120 120 130 / 0.18);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.ff-badge--override,
+.ff-badge--url {
+  background: rgb(109 74 255 / 0.18);
+  color: light-dark(#5b37e8, #b9a5ff);
+}
+
+.ff-badge--rule {
+  background: rgb(4 150 105 / 0.18);
+  color: light-dark(#047857, #6ee7b7);
+}
+
+.ff-badge--rollout {
+  background: rgb(217 119 6 / 0.18);
+  color: light-dark(#b45309, #fcd34d);
+}
+
+.ff-badge--remote {
+  background: rgb(37 99 235 / 0.18);
+  color: light-dark(#1d4ed8, #93c5fd);
+}
+
+.ff-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ff-select,
+.ff-number {
+  padding: 0.2rem 0.35rem;
+  border: 1px solid rgb(120 120 130 / 0.4);
+  border-radius: 0.3rem;
+  background: light-dark(#fff, #26262b);
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+}
+
+.ff-number {
+  width: 5.5rem;
+}

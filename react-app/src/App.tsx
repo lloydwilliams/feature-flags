@@ -3,6 +3,8 @@ import heroImg from './assets/hero.png'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
 import './App.css'
+import { FlagDemo } from './components/FlagDemo'
+import { FlagPanel } from './flags'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -28,6 +30,12 @@ function App() {
         >
           Count is {count}
         </button>
+      </section>
+
+      <div className="ticks"></div>
+
+      <section id="flags">
+        <FlagDemo />
       </section>
 
       <div className="ticks"></div>
@@ -115,6 +123,8 @@ function App() {
 
       <div className="ticks"></div>
       <section id="spacer"></section>
+
+      <FlagPanel />
     </>
   )
 }

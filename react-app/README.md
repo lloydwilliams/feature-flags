@@ -30,3 +30,27 @@ If you are developing a production application, we recommend enabling type-aware
 ```
 
 See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+
+## Feature flags
+
+This app ships a typed feature flag system in [`src/flags`](src/flags) —
+declarative targeting rules, sticky percentage rollouts, URL and localStorage
+overrides, and a dev-only panel for flipping flags at runtime.
+
+See [src/flags/README.md](src/flags/README.md) for the full guide.
+
+```tsx
+const enabled = useFlag('newCheckout')   // typed from the registry
+```
+
+Add or change flags in [`src/flags/flags.ts`](src/flags/flags.ts).
+
+## Scripts
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Vite dev server |
+| `npm run build` | Typecheck (`tsc -b`) then production build |
+| `npm test` | Run the flag evaluation tests once |
+| `npm run test:watch` | Tests in watch mode |
+| `npm run lint` | Oxlint |
