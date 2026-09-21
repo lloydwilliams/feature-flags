@@ -10,6 +10,7 @@
     "typecheck": "tsc -b"
   },
   "dependencies": {
+    "@datadog/browser-logs": "^7.13.0",
     "@datadog/browser-rum": "^7.13.0",
     "@datadog/browser-rum-react": "^7.13.0",
     "@datadog/openfeature-browser": "^1.4.0",
