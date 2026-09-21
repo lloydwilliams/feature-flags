@@ -43,14 +43,44 @@ function targetingKey(): string {
   }
 }
 
-export const evaluationContext = {
+/** Pre-sign-in context: a stable anonymous identity, nothing else. */
+export const anonymousContext = {
   targetingKey: targetingKey(),
 }
 
 /**
- * Registered at module scope, before render, per the Datadog docs. `setProvider`
- * is not awaited; <OpenFeatureProvider suspendUntilReady> handles the wait.
+ * Promotes the signed-in user into the flag evaluation context, so Datadog can
+ * target on them.
+ *
+ * Attribute names here are what you reference in Datadog's targeting rules:
+ * flat keys like `email` and `site` - not the `usr.`-prefixed form used when
+ * querying RUM events.
+ *
+ * `targetingKey` switches from the anonymous UUID to the email, which is the
+ * point (rules and percentage rollouts follow the person, not the browser) but
+ * does mean a user can cross a rollout boundary at sign-in.
+ *
+ * The provider also derives these from the RUM user automatically, but setting
+ * them explicitly wins over that and does not depend on RUM's global being
+ * ready first.
  */
+export async function identifyUser(
+  email: string,
+  userSite: string,
+): Promise<void> {
+  await OpenFeature.setContext({
+    targetingKey: email,
+    email,
+    site: userSite,
+  })
+}
+
+/** Returns to the anonymous context on sign-out. */
+export async function resetUserContext(): Promise<void> {
+  await OpenFeature.setContext(anonymousContext)
+}
+
+/** Registered at module scope, before render, per the Datadog docs. */
 export function initializeFlags(): void {
   if (!isConfigured) {
     console.warn(
@@ -67,5 +97,5 @@ export function initializeFlags(): void {
     env,
   })
 
-  OpenFeature.setProvider(provider, evaluationContext)
+  OpenFeature.setProvider(provider, anonymousContext)
 }
