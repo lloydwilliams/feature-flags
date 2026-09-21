@@ -1,0 +1,54 @@
+.flag-demo {
+  width: min(42rem, calc(100vw - 3rem));
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 1.5rem;
+  border: 1px solid rgb(120 120 130 / 0.25);
+  border-radius: 0.75rem;
+  text-align: left;
+}
+
+.flag-demo h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.flag-demo__banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  background: rgb(109 74 255 / 0.12);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.flag-demo__grid {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0;
+}
+
+.flag-demo__grid dt {
+  font-size: 0.8125rem;
+  opacity: 0.65;
+}
+
+.flag-demo__grid dd {
+  margin: 0.15rem 0 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.flag-demo__reason {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.6;
+}
+
+.flag-demo__note {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  opacity: 0.75;
+}
