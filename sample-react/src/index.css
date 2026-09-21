@@ -27,3 +27,31 @@ body {
   margin: 0;
   opacity: 0.7;
 }
+
+.status {
+  margin: 1.5rem auto 0;
+  max-width: 34rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.status--ok {
+  background: light-dark(#ecfdf5, #052e1f);
+  color: light-dark(#065f46, #6ee7b7);
+}
+
+.status--warn {
+  background: light-dark(#fffbeb, #2e2205);
+  color: light-dark(#92400e, #fcd34d);
+}
+
+.status code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.status--error {
+  background: light-dark(#fef2f2, #300b0b);
+  color: light-dark(#b91c1c, #fca5a5);
+}
