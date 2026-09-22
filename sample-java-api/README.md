@@ -2,19 +2,38 @@
 
 Spring Boot 3.5 / Java 17 REST backend for the `sample-react` app, built with Apache Maven.
 
+## Build
+
+```bash
+mvn -f sample-java-api/pom.xml clean package
+```
+
+Produces the executable jar `sample-java-api/target/sample-java-api.jar` (~25 MB, with
+Tomcat and dependencies inside). Use `clean install` instead to also install it into your
+local `~/.m2` repository as `com.example:sample-java-api:0.0.1-SNAPSHOT`.
+
+`clean package` runs the tests. To run just those:
+
+```bash
+mvn -f sample-java-api/pom.xml test
+```
+
 ## Run
 
 ```bash
 ./sample-java-api/run-sample-java-api.sh
 ```
 
-Listens on `http://localhost:8080`. Health check: `http://localhost:8080/actuator/health`.
+Runs the jar, building it first if it is missing. It does **not** rebuild a jar that is
+already there, so run the build above after changing the code.
 
-Tests:
+Or run it directly:
 
 ```bash
-cd sample-java-api && mvn test
+java -jar sample-java-api/target/sample-java-api.jar
 ```
+
+Listens on `http://localhost:8080`. Health check: `http://localhost:8080/actuator/health`.
 
 ## getUserProfile
 
