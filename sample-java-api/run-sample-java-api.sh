@@ -32,6 +32,12 @@ echo "Starting sample-java-api on http://localhost:8080"
 # SET NON-DEFAULT TRACE PORT FOR LLOYD ONLY
 export DD_TRACE_AGENT_PORT=8136
 
+# Runtime metrics (jvm.*) travel over DogStatsD, not the trace port above, and
+# the tracer defaults to 8125. This Agent reports statsd_port 8135 - check with
+#   curl -s localhost:8136/info | python3 -m json.tool | grep statsd
+# so without this the jvm.* metrics are sent to a port nothing is reading.
+export DD_DOGSTATSD_PORT=8135
+
 #export DD_PROFILING_DDPROF_ENABLED=true # this is the default in v1.7.0+
 #export DD_PROFILING_DDPROF_CPU_ENABLED=true
 #export DD_PROFILING_DDPROF_LIVEHEAP_ENABLED=true
@@ -41,4 +47,6 @@ export DD_TRACE_AGENT_PORT=8136
 # flag to the exec line below when running on Linux.
 # -Ddd.profiling.enabled=true
 
-exec java -javaagent:./dd-java-agent.jar -Ddd.logs.injection=true -Ddd.service=sample-app -Ddd.env=dev -Ddd.version=1.0.0 -jar "$JAR"
+# -Ddd.runtime.metrics.enabled is already the tracer default; set explicitly so
+# the demo does not depend on that default staying true.
+exec java -javaagent:./dd-java-agent.jar -Ddd.logs.injection=true -Ddd.runtime.metrics.enabled=true -Ddd.service=sample-app -Ddd.env=dev -Ddd.version=1.0.0 -jar "$JAR"

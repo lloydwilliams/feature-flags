@@ -169,7 +169,28 @@ Two things a pattern needs that JSON did not:
           pattern: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
   ```
 
-## Calling it from sample-react
+## Runtime metrics
+
+The tracer reports JVM runtime metrics — `jvm.heap_memory`, `jvm.gc.*`,
+`jvm.cpu_load.*`, `jvm.thread_count` and the rest — tagged with `service`, `env`,
+`version`, and `runtime-id`, which is what links them to this service's traces.
+
+These are on by default;
+[run-sample-java-api.sh](run-sample-java-api.sh) sets `-Ddd.runtime.metrics.enabled=true`
+anyway so the demo does not rely on that default holding.
+
+**The part that is easy to miss:** runtime metrics travel over DogStatsD (UDP), not the
+trace port, and the tracer defaults to port 8125. This setup points the trace API at
+8136, and that Agent's DogStatsD listens on **8135**, so the script also sets
+`DD_DOGSTATSD_PORT=8135`. Without it the metrics are sent to a port nothing reads and
+simply never appear — no error anywhere. Check what your Agent expects with:
+
+```bash
+curl -s localhost:8136/info | python3 -m json.tool | grep statsd
+```
+
+Then confirm arrival in Datadog by graphing `jvm.heap_memory` filtered to
+`service:sample-app`.
 
 CORS already allows the Vite dev server origins `http://localhost:5174` (the port in
 `sample-react/vite.config.ts`) and `http://localhost:5173`. Add more under
