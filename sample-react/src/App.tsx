@@ -7,6 +7,7 @@ import {
 } from '@openfeature/react-sdk'
 import { ProviderStatus } from '@openfeature/web-sdk'
 import ddLogo from './images/dd_icon_rgb.png'
+import { AiScanPage } from './AiScanPage'
 import { LoginPage } from './LoginPage'
 import { NewFeaturePage } from './NewFeaturePage'
 import { SignedInPage } from './SignedInPage'
@@ -88,16 +89,17 @@ function FlagReadout({ flagKey }: { flagKey: string }) {
   )
 }
 
-type View = 'home' | 'new-feature'
+type View = 'home' | 'new-feature' | 'ai-scan'
 
 /** Which screen is actually on display, after the flag guard is applied. */
-type ActiveView = 'login' | 'signed-in' | 'new-feature'
+type ActiveView = 'login' | 'signed-in' | 'new-feature' | 'ai-scan'
 
 /** Names reported to Datadog RUM via startView. */
 const RUM_VIEW_NAMES: Record<ActiveView, string> = {
   login: 'Login',
   'signed-in': 'Signed In',
   'new-feature': 'New Feature',
+  'ai-scan': 'AI Scan Assist',
 }
 
 export default function App() {
@@ -181,18 +183,19 @@ export default function App() {
     await resetUserContext()
   }
 
-  // View switching by state rather than a router: three screens but no URLs
+  // View switching by state rather than a router: four screens but no URLs
   // yet. Swap in react-router when real routes are needed.
   //
   // `showNewFeature` is re-checked here on every render, so turning the flag
-  // off acts as a kill switch and returns anyone already on the page to home.
+  // off acts as a kill switch and returns anyone already on the new feature or
+  // AI scan page to home.
   //
   // Derived once and used for both rendering and the RUM view name, so the two
   // cannot disagree about which screen the user is on.
   const activeView: ActiveView = !signedInAs
     ? 'login'
-    : view === 'new-feature' && showNewFeature
-      ? 'new-feature'
+    : (view === 'new-feature' || view === 'ai-scan') && showNewFeature
+      ? view
       : 'signed-in'
 
   // Without a router the URL never changes, so RUM would otherwise report
@@ -218,7 +221,16 @@ export default function App() {
       case 'new-feature':
         return (
           <NewFeaturePage
+            showNewFeature={showNewFeature}
+            onOpenAiScan={() => setView('ai-scan')}
             onBack={() => setView('home')}
+            onSignOut={handleSignOut}
+          />
+        )
+      case 'ai-scan':
+        return (
+          <AiScanPage
+            onBack={() => setView('new-feature')}
             onSignOut={handleSignOut}
           />
         )
