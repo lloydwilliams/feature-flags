@@ -38,6 +38,12 @@ export DD_TRACE_AGENT_PORT=8136
 # so without this the jvm.* metrics are sent to a port nothing is reading.
 export DD_DOGSTATSD_PORT=8135
 
+# Lets the Agent push tracer configuration down from Datadog - the transport
+# behind Dynamic Instrumentation, APM config changes, and ASM rule updates.
+# Already the tracer default; set explicitly so the demo does not depend on
+# that, and so it is visible in one place with the rest of the setup.
+export DD_REMOTE_CONFIGURATION_ENABLED=true
+
 #export DD_PROFILING_DDPROF_ENABLED=true # this is the default in v1.7.0+
 #export DD_PROFILING_DDPROF_CPU_ENABLED=true
 #export DD_PROFILING_DDPROF_LIVEHEAP_ENABLED=true
