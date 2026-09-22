@@ -49,6 +49,8 @@ datadogRum.init({
   trackResources: true,
   trackLongTasks: true,
   defaultPrivacyLevel: 'mask-user-input',
+  // Required for startOperation/succeedOperation to emit operation vitals.
+  enableExperimentalFeatures: ['feature_operation_vital'],
 })
 
 // Register the provider before the first render, per the Datadog docs.

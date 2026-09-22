@@ -1,6 +1,13 @@
 import forklift from './images/forklift.jpg'
 
 export interface NewFeaturePageProps {
+  /**
+   * `show-ai-scan`, resolved once in App and passed down the same way
+   * SignedInPage receives `show-new-feature`. A flag of its own, so the AI scan
+   * screen can go to a subset of the users who already have this page.
+   */
+  showAiScan: boolean
+  onOpenAiScan: () => void
   onBack: () => void
   onSignOut: () => void
 }
@@ -10,7 +17,12 @@ export interface NewFeaturePageProps {
  * App re-checks the flag on every render, so turning it off returns anyone
  * sitting on this page to the landing view.
  */
-export function NewFeaturePage({ onBack, onSignOut }: NewFeaturePageProps) {
+export function NewFeaturePage({
+  showAiScan,
+  onOpenAiScan,
+  onBack,
+  onSignOut,
+}: NewFeaturePageProps) {
   return (
     <section className="panel">
       <h1>New feature</h1>
@@ -26,6 +38,12 @@ export function NewFeaturePage({ onBack, onSignOut }: NewFeaturePageProps) {
       <p className="congrats">
         Congratulations you have accessed our new feature!
       </p>
+
+      {showAiScan && (
+        <button type="button" className="button" onClick={onOpenAiScan}>
+          AI Scan Assist
+        </button>
+      )}
 
       <div className="actions">
         <button type="button" className="button button--quiet" onClick={onBack}>
