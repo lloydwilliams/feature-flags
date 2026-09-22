@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { OpenFeatureProvider } from '@openfeature/react-sdk'
 import App from './App'
 import { initializeFlags } from './flags'
+import { API_BASE_URL } from './userProfile'
 import './index.css'
 
 // Shared by both SDKs so service/env/version cannot drift apart, which would
@@ -51,6 +52,23 @@ datadogRum.init({
   defaultPrivacyLevel: 'mask-user-input',
   // Required for startOperation/succeedOperation to emit operation vitals.
   enableExperimentalFeatures: ['feature_operation_vital'],
+  // Connects RUM resources to APM traces: the SDK injects trace headers into
+  // matching requests, and the Java tracer on sample-java-api continues the
+  // trace it finds, so a click and its backend span land in one flame graph.
+  //
+  // Only the API origin is listed. A broader match - localhost on any port, say
+  // - would attach headers to Vite's own dev-server requests, where they buy
+  // nothing and force a CORS preflight on every module fetch.
+  //
+  // Both propagators are sent: `datadog` (x-datadog-* headers) is what the
+  // Datadog Java tracer reads natively, and `tracecontext` (W3C `traceparent`)
+  // keeps this working against an OpenTelemetry-instrumented backend. For a
+  // deployed API, `match` also accepts a RegExp or a predicate:
+  //   /^https:\/\/[^/]+\.my-api-domain\.com/
+  //   (url) => url.startsWith('https://api.example.com')
+  allowedTracingUrls: [
+    { match: API_BASE_URL, propagatorTypes: ['datadog', 'tracecontext'] },
+  ],
 })
 
 // Register the provider before the first render, per the Datadog docs.
