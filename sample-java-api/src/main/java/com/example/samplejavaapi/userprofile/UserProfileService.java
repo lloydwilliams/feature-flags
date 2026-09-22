@@ -29,7 +29,7 @@ public class UserProfileService {
                   "Lloyd Williams",
                   "Sales Engineer",
                   "Technical Solutions",
-                  "Brisbane, AU",
+                  "Toronto, CA",
                   "https://www.gravatar.com/avatar/lloyd?d=identicon",
                   LocalDate.of(2021, 3, 15),
                   List.of("admin", "flag-editor")),
