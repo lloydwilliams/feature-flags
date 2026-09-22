@@ -14,7 +14,9 @@ const DD_CLIENT_TOKEN = import.meta.env.VITE_DD_CLIENT_TOKEN || ''
 const DD_SITE = import.meta.env.VITE_DD_SITE || 'datadoghq.com'
 const DD_ENV = import.meta.env.VITE_DD_ENV || 'dev'
 const DD_SERVICE = 'sample-react'
-const DD_VERSION = '0.0.0'
+// Matches package.json and the -Ddd.version the Java tracer reports, so RUM,
+// Logs, and APM all tag the same release.
+const DD_VERSION = '1.0.0'
 
 // Logs first, so console output emitted during RUM's own initialization is
 // still captured. Log-to-RUM correlation is resolved when each log is sent,
