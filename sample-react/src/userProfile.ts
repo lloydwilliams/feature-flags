@@ -5,7 +5,13 @@
  * different host with `VITE_API_BASE_URL` in `.env.local`.
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
+/**
+ * Origin of the sample-java-api. Exported because main.tsx passes it to RUM's
+ * `allowedTracingUrls`, and the two must not drift: a mismatch silently stops
+ * trace headers being attached to these requests.
+ */
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
 /**
  * The organization a user belongs to. Shaped to pass straight to
