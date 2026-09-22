@@ -47,8 +47,12 @@
         <appender-ref ref="Console" />
     </root>
 
-    <!-- This app's own classes. Switch to debug or trace when investigating. -->
-    <logger name="com.example.samplejavaapi" level="info" additivity="false">
+    <!--
+      This app's own classes at debug, so the per-request DEBUG line in
+      UserProfileController is actually written. Everything else stays at the
+      root's info, which keeps Spring's own debug output out of the file.
+    -->
+    <logger name="com.example.samplejavaapi" level="debug" additivity="false">
         <appender-ref ref="RollingFile" />
         <appender-ref ref="Console" />
     </logger>

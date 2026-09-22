@@ -61,6 +61,43 @@ class UserProfileControllerTest {
   }
 
   @Test
+  void emailStartingWithErrorFailsWithServerError() throws Exception {
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "error@example.com"))
+        .andExpect(status().isInternalServerError())
+        .andExpect(jsonPath("$.status").value(500))
+        .andExpect(jsonPath("$.message").value("Profile lookup failed for error@example.com"));
+  }
+
+  @Test
+  void emailStartingWithWarnIsRejected() throws Exception {
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "warning.test@example.com"))
+        .andExpect(status().isUnprocessableEntity())
+        .andExpect(jsonPath("$.status").value(422))
+        .andExpect(
+            jsonPath("$.message").value("Profile lookup rejected for warning.test@example.com"));
+  }
+
+  @Test
+  void demoPrefixesAreCaseInsensitive() throws Exception {
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "ERROR@example.com"))
+        .andExpect(status().isInternalServerError());
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "Warn@example.com"))
+        .andExpect(status().isUnprocessableEntity());
+  }
+
+  @Test
+  void anEmailMerelyContainingErrorStillSucceeds() throws Exception {
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "terror.fan@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.firstName").value("Terror"));
+  }
+
+  @Test
   void rejectsMalformedEmail() throws Exception {
     mockMvc
         .perform(get("/api/users/profile").param("email", "not-an-email"))
