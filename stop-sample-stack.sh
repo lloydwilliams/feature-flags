@@ -67,7 +67,11 @@ stop_matching "run-sample-stack.sh" "run-sample-stack.sh"
 
 # Both the jar (current) and spring-boot:run (how this used to start), since a
 # long-running shell may still have the old one.
-stop_matching "sample-java-api (jar)" "java -jar target/sample-java-api.jar"
+#
+# Matched on the jar path alone, not "java -jar …": the tracer puts -javaagent
+# and several -Ddd.* flags between the two, which a literal "java -jar" pattern
+# would miss entirely.
+stop_matching "sample-java-api (jar)" "target/sample-java-api.jar"
 stop_matching "sample-java-api (mvn)" "spring-boot:run"
 
 # vite's command line carries the full path, so this only ever matches the dev

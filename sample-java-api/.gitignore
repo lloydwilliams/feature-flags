@@ -1,2 +1,5 @@
 target/
 *.log
+
+# Datadog Java tracer - a ~20MB binary, fetched with get-dd-java-agent.sh
+dd-java-agent.jar
