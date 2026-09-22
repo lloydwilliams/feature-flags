@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: sample-java-api
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+sample:
+  cors:
+    # sample-react's Vite dev server (see sample-react/vite.config.ts) plus the
+    # default Vite port, so either works without a config change.
+    allowed-origins: http://localhost:5174,http://localhost:5173
+  profile:
+    # true -> unknown emails return 404 instead of a derived demo profile
+    strict-directory: false
+
+logging:
+  level:
+    com.example.samplejavaapi: INFO

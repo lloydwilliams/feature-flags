@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_DD_SITE?: string
   /** e.g. dev, staging, prod */
   readonly VITE_DD_ENV?: string
+  /** sample-java-api origin. Defaults to http://localhost:8080. */
+  readonly VITE_API_BASE_URL?: string
 }
 
 interface ImportMeta {
