@@ -24,28 +24,7 @@ sample:
     # true -> unknown emails return 404 instead of a derived demo profile
     strict-directory: false
 
-logging:
-  level:
-    com.example.samplejavaapi: INFO
-
-  # Log file for the Datadog Agent to tail. Relative to the working directory,
-  # which run-sample-java-api.sh sets to sample-java-api/.
-  file:
-    name: logs/sample-java-api.log
-
-  structured:
-    format:
-      # JSON on disk only; the console stays human-readable for local runs.
-      #
-      # logstash rather than ecs because it puts MDC entries at the top level,
-      # so the dd.trace_id and dd.span_id that -Ddd.logs.injection=true adds
-      # land where Datadog looks for them and logs correlate with APM traces.
-      file: logstash
-
-  logback:
-    rollingpolicy:
-      file-name-pattern: logs/sample-java-api.%d{yyyy-MM-dd}.%i.log.gz
-      max-file-size: 10MB
-      max-history: 7
-      # Bounded, so a long-running demo cannot fill the disk.
-      total-size-cap: 100MB
+# Logging - appenders, pattern, levels, and rotation - lives in
+# logback-spring.xml. Levels are deliberately not set here too: a
+# logging.level.* entry would override the XML and split one decision across
+# two files.
