@@ -37,11 +37,15 @@ Listens on `http://localhost:8080`. Health check: `http://localhost:8080/actuato
 
 ## getUserProfile
 
-`GET /api/users/profile?email={email}`
+`GET /api/users/profile?email={email}&site={site}`
 
 ```bash
-curl "http://localhost:8080/api/users/profile?email=jane@example.com"
+curl "http://localhost:8080/api/users/profile?email=jane@example.com&site=Toronto"
 ```
+
+`site` is the value chosen in the `sample-react` drop-down. It is optional and does **not**
+change the profile returned — it is passed purely so server-side flag rules can target on
+it. See [Server-side feature flags](#server-side-feature-flags).
 
 ```json
 {
@@ -205,10 +209,26 @@ Client client = api.getClient("sample-java-api");
 Registered once in
 [FeatureFlagsConfig.java](src/main/java/com/example/samplejavaapi/flags/FeatureFlagsConfig.java),
 which exposes the `Client` as a bean;
-[FeatureFlags.java](src/main/java/com/example/samplejavaapi/flags/FeatureFlags.java) wraps
-evaluation and sets the **targeting key to the email** — the same key `sample-react` sends to
-the browser provider, so one rule in Datadog can target the same person on both sides of the
-call.
+[FeatureFlags.java](src/main/java/com/example/samplejavaapi/flags/FeatureFlags.java) builds the
+evaluation context.
+
+### Targeting attributes
+
+The context mirrors what `sample-react` sends to the browser provider, so a rule written once
+in Datadog applies on both sides of the call:
+
+| Context | Value | Notes |
+| --- | --- | --- |
+| targeting key | the email | Stable identity; percentage rollouts follow the person |
+| `email` | the email, lower-cased | Available as a targeting attribute |
+| `site` | the `site` query param, as sent | Omitted when absent, so a site rule misses rather than matching a blank |
+
+`site` is not lower-cased: the drop-down sends display names like `Toronto`, and Datadog
+compares exact strings, so folding case would stop rules written against those values from
+matching.
+
+This is why `getUserProfile` takes `site` at all — `show-new-feature` targets on it, and a
+backend that never receives it can only ever evaluate that flag to its default.
 
 ### Requirements
 
@@ -249,6 +269,15 @@ profile. **Nothing is gated on it yet:**
 `reason` is the useful part: `STATIC` or `TARGETING_MATCH` means the value came from real
 configuration, while `ERROR` or `DEFAULT` means it fell back to the code default. Change
 which key is read with `sample.flags.readout-key`.
+
+Site targeting is visible in that readout — `show-new-feature` currently matches on
+`site:Toronto`:
+
+```
+site=null         flag show-new-feature=false (reason STATIC)
+site=Toronto      flag show-new-feature=true  (reason TARGETING_MATCH)
+site=Mexico City  flag show-new-feature=false (reason STATIC)
+```
 
 ## Calling it from sample-react
 

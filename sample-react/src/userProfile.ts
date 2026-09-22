@@ -69,13 +69,24 @@ export class ProfileApiError extends Error {
 const REQUEST_TIMEOUT_MS = 5000
 
 /**
- * Calls `getUserProfile` for the given email.
+ * Calls `getUserProfile` for the given email and site.
+ *
+ * `site` does not change the profile that comes back; it is sent so the API can
+ * put it in its server-side flag evaluation context, matching the `site`
+ * attribute this app already sends to the browser provider. Without it, a rule
+ * targeting on site - which `show-new-feature` does - cannot match on the
+ * backend.
  *
  * Rejects with a human-readable message on a non-2xx response, a timeout, or a
  * network failure - callers are expected to surface it rather than retry.
  */
-export async function fetchUserProfile(email: string): Promise<UserProfile> {
-  const url = `${API_BASE_URL}/api/users/profile?email=${encodeURIComponent(email)}`
+export async function fetchUserProfile(
+  email: string,
+  site: string,
+): Promise<UserProfile> {
+  const url =
+    `${API_BASE_URL}/api/users/profile` +
+    `?email=${encodeURIComponent(email)}&site=${encodeURIComponent(site)}`
 
   let response: Response
   try {

@@ -98,6 +98,26 @@ class UserProfileControllerTest {
   }
 
   @Test
+  void acceptsSiteForFlagTargeting() throws Exception {
+    mockMvc
+        .perform(
+            get("/api/users/profile").param("email", "jane@example.com").param("site", "Toronto"))
+        .andExpect(status().isOk())
+        // site is flag-targeting context only: the profile is unchanged by it,
+        // and in particular does not become the profile's own location.
+        .andExpect(jsonPath("$.displayName").value("Jane Doe"))
+        .andExpect(jsonPath("$.location").value("Sydney, AU"));
+  }
+
+  @Test
+  void siteRemainsOptional() throws Exception {
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "jane@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.displayName").value("Jane Doe"));
+  }
+
+  @Test
   void rejectsMalformedEmail() throws Exception {
     mockMvc
         .perform(get("/api/users/profile").param("email", "not-an-email"))
