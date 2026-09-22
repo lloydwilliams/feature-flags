@@ -8,8 +8,8 @@ export interface AiScanPageProps {
  *
  * A distinct screen rather than a panel on that page, so RUM records it as its
  * own view - App starts "AI Scan Assist" in RUM when this becomes the active
- * view. Like NewFeaturePage it sits behind `show-new-feature`, which App
- * re-checks on every render.
+ * view. Gated on `show-ai-scan` and, because it hangs off the new feature, on
+ * `show-new-feature` too; App re-checks both on every render.
  */
 export function AiScanPage({ onBack, onSignOut }: AiScanPageProps) {
   return (

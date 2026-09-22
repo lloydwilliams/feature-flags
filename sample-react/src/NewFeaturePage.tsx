@@ -2,11 +2,11 @@ import forklift from './images/forklift.jpg'
 
 export interface NewFeaturePageProps {
   /**
-   * Resolved once in App and passed down, same as on SignedInPage. Reaching
-   * this page already implies the flag is on, so this gate is belt and braces:
-   * it keeps the button and App's route guard reading the one decision.
+   * `show-ai-scan`, resolved once in App and passed down the same way
+   * SignedInPage receives `show-new-feature`. A flag of its own, so the AI scan
+   * screen can go to a subset of the users who already have this page.
    */
-  showNewFeature: boolean
+  showAiScan: boolean
   onOpenAiScan: () => void
   onBack: () => void
   onSignOut: () => void
@@ -18,7 +18,7 @@ export interface NewFeaturePageProps {
  * sitting on this page to the landing view.
  */
 export function NewFeaturePage({
-  showNewFeature,
+  showAiScan,
   onOpenAiScan,
   onBack,
   onSignOut,
@@ -39,7 +39,7 @@ export function NewFeaturePage({
         Congratulations you have accessed our new feature!
       </p>
 
-      {showNewFeature && (
+      {showAiScan && (
         <button type="button" className="button" onClick={onOpenAiScan}>
           AI Scan Assist
         </button>

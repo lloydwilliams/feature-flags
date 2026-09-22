@@ -76,7 +76,11 @@ export async function identifyUser(
 }
 
 /** Every flag this app reads. Keep in step with the hooks in App. */
-export const FLAG_KEYS = ['show-datadog-logo', 'show-new-feature'] as const
+export const FLAG_KEYS = [
+  'show-datadog-logo',
+  'show-new-feature',
+  'show-ai-scan',
+] as const
 
 export interface FlagSnapshot {
   key: string

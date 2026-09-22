@@ -116,6 +116,9 @@ export default function App() {
   // the provider is unavailable.
   const showDatadogLogo = useBooleanFlagValue('show-datadog-logo', false)
   const showNewFeature = useBooleanFlagValue('show-new-feature', false)
+  // Separate from show-new-feature so the AI scan screen can be rolled out to a
+  // subset of the users who already have the gated feature.
+  const showAiScan = useBooleanFlagValue('show-ai-scan', false)
 
   const [signedInAs, setSignedInAs] = useState<string | null>(null)
   const [signedInSite, setSignedInSite] = useState<Site | null>(null)
@@ -205,7 +208,25 @@ export default function App() {
     setView('ai-scan')
   }
 
+  /**
+   * Closes an open operation as a drop-off, so leaving the funnel is recorded
+   * rather than silently emitting nothing.
+   *
+   * A no-op once the operation has ended, which is what makes it safe to call
+   * from Back on the AI scan page - by then it has already succeeded.
+   */
+  function abandonOperation() {
+    if (!operationKey.current) return
+    datadogRum.failOperation(AI_SCAN_OPERATION, 'abandoned', {
+      operationKey: operationKey.current,
+    })
+    operationKey.current = null
+  }
+
   async function handleSignOut() {
+    // Before clearUser, so the vital is still attributed to the user who
+    // abandoned the funnel.
+    abandonOperation()
     datadogRum.clearUser()
     datadogRum.clearAccount()
     setSignedInAs(null)
@@ -219,17 +240,20 @@ export default function App() {
   // View switching by state rather than a router: four screens but no URLs
   // yet. Swap in react-router when real routes are needed.
   //
-  // `showNewFeature` is re-checked here on every render, so turning the flag
-  // off acts as a kill switch and returns anyone already on the new feature or
-  // AI scan page to home.
+  // Both flags are re-checked here on every render, so turning either off acts
+  // as a kill switch and returns anyone sitting on a gated page to home. The AI
+  // scan screen hangs off the new feature, so it needs both: switching
+  // show-new-feature off takes the whole feature down with it.
   //
   // Derived once and used for both rendering and the RUM view name, so the two
   // cannot disagree about which screen the user is on.
   const activeView: ActiveView = !signedInAs
     ? 'login'
-    : (view === 'new-feature' || view === 'ai-scan') && showNewFeature
-      ? view
-      : 'signed-in'
+    : view === 'new-feature' && showNewFeature
+      ? 'new-feature'
+      : view === 'ai-scan' && showNewFeature && showAiScan
+        ? 'ai-scan'
+        : 'signed-in'
 
   // Without a router the URL never changes, so RUM would otherwise report
   // every screen under a single "/" view. startView (not setViewName) is what
@@ -254,16 +278,22 @@ export default function App() {
       case 'new-feature':
         return (
           <NewFeaturePage
-            showNewFeature={showNewFeature}
+            showAiScan={showAiScan}
             onOpenAiScan={handleOpenAiScan}
-            onBack={() => setView('home')}
+            onBack={() => {
+              abandonOperation()
+              setView('home')
+            }}
             onSignOut={handleSignOut}
           />
         )
       case 'ai-scan':
         return (
           <AiScanPage
-            onBack={() => setView('new-feature')}
+            onBack={() => {
+              abandonOperation()
+              setView('new-feature')
+            }}
             onSignOut={handleSignOut}
           />
         )
@@ -299,6 +329,7 @@ export default function App() {
       <ProviderStatusNotice />
       <FlagReadout flagKey="show-datadog-logo" />
       <FlagReadout flagKey="show-new-feature" />
+      <FlagReadout flagKey="show-ai-scan" />
     </main>
   )
 }
