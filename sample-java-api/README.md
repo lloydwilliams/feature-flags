@@ -75,8 +75,26 @@ Responses:
 | 200 | Profile found (or derived — see below) |
 | 400 | `email` missing or not a valid address |
 | 404 | Unknown email, only in strict directory mode |
+| 422 | Email starts with `warn` — demo hook, logs a WARN |
+| 500 | Email starts with `error` — demo hook, logs an ERROR |
 
 Errors return `{"status":..., "error":..., "message":...}`.
+
+### Demo failure hooks
+
+Two email prefixes fail on purpose, so a demo can produce a failed sign-in and a log line
+at a chosen level without touching the code:
+
+| Email | Result |
+| --- | --- |
+| `error@example.com`, `error.anything@…` | 500, ERROR log with a stack trace |
+| `warn@example.com`, `warning.anything@…` | 422, WARN log, no stack trace |
+
+The check is on the start of the address and is case-insensitive, so `ERROR@…` works and
+`terror.fan@…` does not. Defined in
+[UserProfileService.java](src/main/java/com/example/samplejavaapi/userprofile/UserProfileService.java);
+the log lines come from
+[ApiExceptionHandler.java](src/main/java/com/example/samplejavaapi/web/ApiExceptionHandler.java).
 
 ### Profile data
 
@@ -97,32 +115,33 @@ sample:
 
 ## Logs
 
-Every call to `getUserProfile` writes an INFO line to
-`sample-java-api/logs/sample-java-api.log`, as JSON. The console keeps the normal
-human-readable format; only the file is structured.
+Every call to `getUserProfile` writes to `sample-java-api/logs/sample-java-api.log`. The
+console and the file use the same pattern.
 
-```json
-{
-  "@timestamp": "2026-09-22T17:30:02.240026-04:00",
-  "message": "getUserProfile requested for email=lloyd.williams@datadoghq.com",
-  "logger_name": "com.example.samplejavaapi.userprofile.UserProfileController",
-  "level": "INFO",
-  "dd.trace_id": "16638388692058845321",
-  "dd.span_id": "8215306509450824020",
-  "dd.service": "sample-app",
-  "dd.env": "dev",
-  "dd.version": "1.0.0"
-}
+| Call | Lines written |
+| --- | --- |
+| Normal | INFO (request) + DEBUG (what was resolved) |
+| Email starts with `error` | INFO + ERROR, with a stack trace |
+| Email starts with `warn` | INFO + WARN |
+
+The DEBUG line only appears because `logback-spring.xml` sets this app's package to
+`debug`; the root stays at `info` so Spring's own debug output is not swept in.
+
+```
+2026-09-22T18:14:17.793-0400 INFO  [http-nio-8080-exec-2] [c.e.s.u.UserProfileController getUserProfile:45] [16638388692058845321] [6626893373907206351] getUserProfile requested for email=lloyd.williams@datadoghq.com
 ```
 
-The `dd.*` fields come from `-Ddd.logs.injection=true` in
-[run-sample-java-api.sh](run-sample-java-api.sh). They are what correlates a log line
-with its APM trace — and, because `sample-react` propagates its trace id on the way in,
-with the RUM session that triggered the call.
+The two bracketed ids are `dd.trace_id` and `dd.span_id`, read from MDC where
+`-Ddd.logs.injection=true` in [run-sample-java-api.sh](run-sample-java-api.sh) puts
+them. Because `sample-react` propagates its trace id on the way in, that first id ties
+the line back to the RUM session that triggered the call. Requests that arrive without a
+trace, and startup lines, show empty brackets.
 
-Configured under `logging` in [application.yml](src/main/resources/application.yml):
-`logstash` format (MDC at the top level, where Datadog looks for `dd.trace_id`), rotating
-at 10MB with 7 days of history and a 100MB cap. The `logs/` directory is gitignored.
+Everything — appenders, pattern, levels, rotation — is in
+[logback-spring.xml](src/main/resources/logback-spring.xml). It rolls daily and at 10MB
+into `logs/archived/`, keeping 7 days up to 100MB. `logs/` is gitignored. Tests use
+[logback-test.xml](src/test/resources/logback-test.xml) and log to the
+console only, so `mvn test` never appends to the file the Agent is tailing.
 
 To ship these to Datadog, point the Agent at the file — `service` must match
 `dd.service` for correlation to hold:
@@ -134,6 +153,21 @@ logs:
     service: sample-app
     source: java
 ```
+
+Two things a pattern needs that JSON did not:
+
+- **A grok rule.** `source: java` applies the built-in Java pipeline, but the bracketed
+  trace and span ids are not where it expects them, so map them to `dd.trace_id` and
+  `dd.span_id` yourself if you want logs and traces linked in the UI.
+- **A multiline rule**, because the ERROR hook logs a stack trace. Without it each `at …`
+  frame ships as its own log:
+
+  ```yaml
+      log_processing_rules:
+        - type: multi_line
+          name: new_log_start_with_timestamp
+          pattern: \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}
+  ```
 
 ## Calling it from sample-react
 
@@ -163,6 +197,10 @@ sample-java-api/
     │   ├── SampleJavaApiApplication.java
     │   ├── userprofile/          # UserProfile, service, controller, not-found exception
     │   └── web/                  # CORS config, JSON error handler
-    ├── main/resources/application.yml
-    └── test/java/com/example/samplejavaapi/userprofile/
+    ├── main/resources/
+    │   ├── application.yml       # server, CORS, profile directory mode
+    │   └── logback-spring.xml    # console + rolling file appenders, pattern
+    └── test/
+        ├── java/com/example/samplejavaapi/userprofile/
+        └── resources/logback-test.xml  # console only, keeps tests out of the log file
 ```

@@ -43,6 +43,19 @@ public class UserProfileController {
       @RequestParam("email") @NotBlank @Email(message = "must be a valid email address")
           String email) {
     log.info("getUserProfile requested for email={}", email);
-    return userProfileService.getUserProfile(email);
+
+    UserProfile profile = userProfileService.getUserProfile(email);
+
+    // What was actually resolved, at DEBUG so the INFO line above stays the
+    // one-per-request summary. Not reached when the lookup throws.
+    log.debug(
+        "getUserProfile resolved email={} displayName={} account={} plan={} roles={}",
+        email,
+        profile.displayName(),
+        profile.account().id(),
+        profile.account().plan(),
+        profile.roles());
+
+    return profile;
   }
 }

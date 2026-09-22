@@ -20,6 +20,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserProfileService {
 
+  /** Email prefix that makes a lookup fail with a 500 and an ERROR log. */
+  private static final String ERROR_PREFIX = "error";
+
+  /** Email prefix that makes a lookup fail with a 422 and a WARN log. */
+  private static final String WARNING_PREFIX = "warn";
+
   /** Shared by two seeded users, so account-level grouping in RUM has something to group. */
   private static final Account EXAMPLE_CORP = new Account("acct-2002", "Example Corp", "pro");
 
@@ -77,6 +83,17 @@ public class UserProfileService {
    */
   public UserProfile getUserProfile(String email) {
     String key = normalize(email);
+
+    // Demo hooks, checked before the directory so they work for any domain:
+    // these two prefixes fail the request on purpose, which is what drives the
+    // ERROR and WARN log lines in ApiExceptionHandler.
+    if (key.startsWith(ERROR_PREFIX)) {
+      throw new SimulatedProfileErrorException(email);
+    }
+    if (key.startsWith(WARNING_PREFIX)) {
+      throw new SimulatedProfileWarningException(email);
+    }
+
     return Optional.ofNullable(DIRECTORY.get(key))
         .orElseGet(
             () -> {

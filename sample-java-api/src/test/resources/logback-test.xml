@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Console-only logging for tests.
+
+  Without this, the test run picks up logback-spring.xml and appends to
+  logs/sample-java-api.log - the same file the Datadog Agent tails - so every
+  `mvn test` would ship test output as application logs, with empty trace ids.
+-->
+<configuration>
+
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <Pattern>%d{HH:mm:ss.SSS} %-5p [%c{1}] %m%n</Pattern>
+        </encoder>
+    </appender>
+
+    <root level="info">
+        <appender-ref ref="Console" />
+    </root>
+
+</configuration>
