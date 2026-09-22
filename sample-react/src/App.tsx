@@ -94,6 +94,15 @@ type View = 'home' | 'new-feature' | 'ai-scan'
 /** Which screen is actually on display, after the flag guard is applied. */
 type ActiveView = 'login' | 'signed-in' | 'new-feature' | 'ai-scan'
 
+/**
+ * Operation vital tracking the gated feature's funnel: opening the new feature
+ * page starts it, reaching the AI scan screen completes it.
+ *
+ * Requires `enableExperimentalFeatures: ['feature_operation_vital']` at init
+ * (see main.tsx) - without it the SDK accepts these calls but emits nothing.
+ */
+const AI_SCAN_OPERATION = 'new-feature-ai-scan'
+
 /** Names reported to Datadog RUM via startView. */
 const RUM_VIEW_NAMES: Record<ActiveView, string> = {
   login: 'Login',
@@ -172,6 +181,30 @@ export default function App() {
     setView('home')
   }
 
+  // Identifies one attempt at the funnel, so overlapping or repeated attempts
+  // cannot be matched to the wrong start. A ref rather than state: changing it
+  // must not trigger a render.
+  const operationKey = useRef<string | null>(null)
+
+  function handleOpenNewFeature() {
+    const key = crypto.randomUUID()
+    operationKey.current = key
+    datadogRum.startOperation(AI_SCAN_OPERATION, { operationKey: key })
+    setView('new-feature')
+  }
+
+  function handleOpenAiScan() {
+    // Ends the operation started on the New Feature click. Nothing reaches
+    // Datadog until this fires - a start on its own emits no vital.
+    if (operationKey.current) {
+      datadogRum.succeedOperation(AI_SCAN_OPERATION, {
+        operationKey: operationKey.current,
+      })
+      operationKey.current = null
+    }
+    setView('ai-scan')
+  }
+
   async function handleSignOut() {
     datadogRum.clearUser()
     datadogRum.clearAccount()
@@ -222,7 +255,7 @@ export default function App() {
         return (
           <NewFeaturePage
             showNewFeature={showNewFeature}
-            onOpenAiScan={() => setView('ai-scan')}
+            onOpenAiScan={handleOpenAiScan}
             onBack={() => setView('home')}
             onSignOut={handleSignOut}
           />
@@ -242,7 +275,7 @@ export default function App() {
             profile={profile}
             profileError={profileError}
             showNewFeature={showNewFeature}
-            onOpenNewFeature={() => setView('new-feature')}
+            onOpenNewFeature={handleOpenNewFeature}
             onSignOut={handleSignOut}
           />
         )
