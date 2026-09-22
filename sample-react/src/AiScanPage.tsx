@@ -68,7 +68,7 @@ export function AiScanPage({ onBack, onSignOut }: AiScanPageProps) {
       amount: value,
     })
 
-    datadogRum.addAction('scan_completed', { scan_type: 'ai', amount: value })
+    datadogRum.addAction('Scan Completed', { scan_type: 'ai', amount: value })
 
     setScanned(value)
   }
