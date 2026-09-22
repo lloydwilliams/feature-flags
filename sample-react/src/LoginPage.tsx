@@ -35,8 +35,9 @@ export interface LoginPageProps {
 }
 
 /**
- * Sample login form. There is no backend: a successful submit just hands the
- * validated email upward, where it becomes the Datadog RUM identity.
+ * Sample login form. A successful submit hands the validated email upward,
+ * where it becomes the Datadog RUM identity and the key for the backend's
+ * getUserProfile call.
  *
  * The password is never logged, sent anywhere, or retained after submit.
  */

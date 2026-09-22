@@ -20,6 +20,7 @@ import {
   resetUserContext,
 } from './flags'
 import type { Site } from './sites'
+import { fetchUserProfile, type UserProfile } from './userProfile'
 
 /**
  * Reports the provider's real status, not just whether config was present.
@@ -99,9 +100,6 @@ const RUM_VIEW_NAMES: Record<ActiveView, string> = {
   'new-feature': 'New Feature',
 }
 
-/** Simulated backend latency for sign-in. */
-const SIGN_IN_DELAY_MS = 1000
-
 export default function App() {
   // Both default to false, so nothing gated appears if the flag is missing or
   // the provider is unavailable.
@@ -110,12 +108,26 @@ export default function App() {
 
   const [signedInAs, setSignedInAs] = useState<string | null>(null)
   const [signedInSite, setSignedInSite] = useState<Site | null>(null)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [profileError, setProfileError] = useState<string | null>(null)
   const [view, setView] = useState<View>('home')
 
   async function handleSignIn(email: string, site: Site) {
-    // Stand-in for the auth request a real app would make here. LoginPage
-    // shows its pending state for as long as this takes.
-    await new Promise((resolve) => setTimeout(resolve, SIGN_IN_DELAY_MS))
+    // The real backend call for sign-in: sample-java-api's getUserProfile,
+    // keyed on the email just entered. LoginPage shows its pending state for as
+    // long as this takes.
+    //
+    // A failure here does not block sign-in - the flag demo still needs to work
+    // when the Java API is not running - so the error is carried to the
+    // signed-in page instead of thrown back at the form.
+    let fetched: UserProfile | null = null
+    let failure: string | null = null
+    try {
+      fetched = await fetchUserProfile(email)
+    } catch (error) {
+      failure = error instanceof Error ? error.message : String(error)
+      console.error('[api] getUserProfile failed', error)
+    }
 
     // `site` lands as a custom user attribute, queryable in RUM as `usr.site`.
     // Unrelated to the SDK's own `site` init option (datadoghq.com).
@@ -142,6 +154,8 @@ export default function App() {
 
     setSignedInAs(email)
     setSignedInSite(site)
+    setProfile(fetched)
+    setProfileError(failure)
     setView('home')
   }
 
@@ -149,6 +163,8 @@ export default function App() {
     datadogRum.clearUser()
     setSignedInAs(null)
     setSignedInSite(null)
+    setProfile(null)
+    setProfileError(null)
     setView('home')
     await resetUserContext()
   }
@@ -199,6 +215,8 @@ export default function App() {
           <SignedInPage
             email={signedInAs!}
             site={signedInSite}
+            profile={profile}
+            profileError={profileError}
             showNewFeature={showNewFeature}
             onOpenNewFeature={() => setView('new-feature')}
             onSignOut={handleSignOut}
