@@ -95,6 +95,46 @@ sample:
     strict-directory: true
 ```
 
+## Logs
+
+Every call to `getUserProfile` writes an INFO line to
+`sample-java-api/logs/sample-java-api.log`, as JSON. The console keeps the normal
+human-readable format; only the file is structured.
+
+```json
+{
+  "@timestamp": "2026-09-22T17:30:02.240026-04:00",
+  "message": "getUserProfile requested for email=lloyd.williams@datadoghq.com",
+  "logger_name": "com.example.samplejavaapi.userprofile.UserProfileController",
+  "level": "INFO",
+  "dd.trace_id": "16638388692058845321",
+  "dd.span_id": "8215306509450824020",
+  "dd.service": "sample-app",
+  "dd.env": "dev",
+  "dd.version": "1.0.0"
+}
+```
+
+The `dd.*` fields come from `-Ddd.logs.injection=true` in
+[run-sample-java-api.sh](run-sample-java-api.sh). They are what correlates a log line
+with its APM trace — and, because `sample-react` propagates its trace id on the way in,
+with the RUM session that triggered the call.
+
+Configured under `logging` in [application.yml](src/main/resources/application.yml):
+`logstash` format (MDC at the top level, where Datadog looks for `dd.trace_id`), rotating
+at 10MB with 7 days of history and a 100MB cap. The `logs/` directory is gitignored.
+
+To ship these to Datadog, point the Agent at the file — `service` must match
+`dd.service` for correlation to hold:
+
+```yaml
+logs:
+  - type: file
+    path: /absolute/path/to/sample-java-api/logs/sample-java-api.log
+    service: sample-app
+    source: java
+```
+
 ## Calling it from sample-react
 
 CORS already allows the Vite dev server origins `http://localhost:5174` (the port in
