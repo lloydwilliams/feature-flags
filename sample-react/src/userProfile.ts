@@ -47,6 +47,24 @@ interface ApiError {
   message: string
 }
 
+/**
+ * Thrown for any failed profile call.
+ *
+ * Carries the HTTP status so callers can react to the kind of failure - the
+ * sign-in flow logs a 4xx as a warning and a 5xx as an error, mirroring how the
+ * API logs it on its own side. `status` is null when there was no response at
+ * all, which is a failure to reach the API rather than a rejection by it.
+ */
+export class ProfileApiError extends Error {
+  readonly status: number | null
+
+  constructor(message: string, status: number | null, options?: ErrorOptions) {
+    super(message, options)
+    this.name = 'ProfileApiError'
+    this.status = status
+  }
+}
+
 /** Request timeout, so a stalled backend cannot hang the sign-in form. */
 const REQUEST_TIMEOUT_MS = 5000
 
@@ -68,8 +86,9 @@ export async function fetchUserProfile(email: string): Promise<UserProfile> {
   } catch (cause) {
     // A CORS rejection or a backend that is not running both land here, and the
     // browser deliberately withholds the details, so name the likely cause.
-    throw new Error(
+    throw new ProfileApiError(
       `Could not reach the profile API at ${API_BASE_URL}. Is sample-java-api running?`,
+      null,
       { cause },
     )
   }
@@ -80,10 +99,11 @@ export async function fetchUserProfile(email: string): Promise<UserProfile> {
       .json()
       .then((body: ApiError) => body.message)
       .catch(() => null)
-    throw new Error(
+    throw new ProfileApiError(
       detail
         ? `getUserProfile failed (${response.status}): ${detail}`
         : `getUserProfile failed (${response.status})`,
+      response.status,
     )
   }
 
