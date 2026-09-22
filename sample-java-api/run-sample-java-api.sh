@@ -36,6 +36,9 @@ export DD_TRACE_AGENT_PORT=8136
 #export DD_PROFILING_DDPROF_CPU_ENABLED=true
 #export DD_PROFILING_DDPROF_LIVEHEAP_ENABLED=true
 ## ONLY ON LINUX
+# On macOS the tracer throws "libjavaProfiler.dylib not found on classpath" -
+# non-fatal, but it fills the log with a stack trace on every start. Add this
+# flag to the exec line below when running on Linux.
 # -Ddd.profiling.enabled=true
 
-exec java -javaagent:./dd-java-agent.jar -Ddd.profiling.enabled=true -Ddd.logs.injection=true -Ddd.service=sample-app -Ddd.env=dev -Ddd.version=1.0.0 -jar "$JAR"
+exec java -javaagent:./dd-java-agent.jar -Ddd.logs.injection=true -Ddd.service=sample-app -Ddd.env=dev -Ddd.version=1.0.0 -jar "$JAR"
