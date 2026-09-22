@@ -50,6 +50,20 @@ export DD_REMOTE_CONFIGURATION_ENABLED=true
 export DD_DYNAMIC_INSTRUMENTATION_ENABLED=true
 export DD_APPSEC_ENABLED=true
 
+# Server-side feature flags need a Datadog API key, which is not committed.
+# Export DD_API_KEY in your shell, or put it in sample-java-api/.env.local -
+# gitignored by the same rule that covers sample-react's.
+if [ -f .env.local ]; then
+  set -a
+  . ./.env.local
+  set +a
+fi
+
+if [ -z "${DD_API_KEY:-}" ]; then
+  echo "warning: DD_API_KEY is not set, so the flag provider cannot fetch its" >&2
+  echo "         configuration and every flag returns its code default." >&2
+fi
+
 #export DD_PROFILING_DDPROF_ENABLED=true # this is the default in v1.7.0+
 #export DD_PROFILING_DDPROF_CPU_ENABLED=true
 #export DD_PROFILING_DDPROF_LIVEHEAP_ENABLED=true

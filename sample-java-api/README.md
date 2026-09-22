@@ -192,6 +192,66 @@ curl -s localhost:8136/info | python3 -m json.tool | grep statsd
 Then confirm arrival in Datadog by graphing `jvm.heap_memory` filtered to
 `service:sample-app`.
 
+## Server-side feature flags
+
+Flags are evaluated in-process through OpenFeature, with Datadog's provider:
+
+```java
+OpenFeatureAPI api = OpenFeatureAPI.getInstance();
+api.setProviderAndWait(new Provider(new Provider.Options().initTimeout(5, TimeUnit.SECONDS)));
+Client client = api.getClient("sample-java-api");
+```
+
+Registered once in
+[FeatureFlagsConfig.java](src/main/java/com/example/samplejavaapi/flags/FeatureFlagsConfig.java),
+which exposes the `Client` as a bean;
+[FeatureFlags.java](src/main/java/com/example/samplejavaapi/flags/FeatureFlags.java) wraps
+evaluation and sets the **targeting key to the email** — the same key `sample-react` sends to
+the browser provider, so one rule in Datadog can target the same person on both sides of the
+call.
+
+### Requirements
+
+- `dd-java-agent` attached: evaluation happens inside the agent
+- `DD_API_KEY` set, or the provider cannot fetch its configuration
+- `dev.openfeature:sdk` and `com.datadoghq:dd-openfeature` on the classpath, and
+  **`dd-openfeature` must match the agent version**. `get-dd-java-agent.sh` always fetches
+  the latest agent, so bump `dd-openfeature.version` in the pom when that moves on.
+
+### Without those
+
+`setProviderAndWait` throws; that is caught and logged as a warning. OpenFeature keeps its
+no-op provider, every evaluation returns the default passed at the call site, and the app
+starts normally — the same fallback shape `sample-react` uses. This is what happens during
+`mvn test`:
+
+```
+WARN  Datadog feature flag provider unavailable (FatalError: Failed to initialize provider,
+      is the tracer configured?); flags will return their code defaults.
+```
+
+With the agent and a key, startup reports instead:
+
+```
+INFO  Provider datadog-openfeature-provider transitioned from state NOT_READY to state READY
+INFO  Datadog feature flag provider registered for client=sample-java-api
+```
+
+### Current usage
+
+`getUserProfile` evaluates one flag purely as a readout, logged at DEBUG beside the resolved
+profile. **Nothing is gated on it yet:**
+
+```
+… flag show-new-feature=false (reason STATIC)
+```
+
+`reason` is the useful part: `STATIC` or `TARGETING_MATCH` means the value came from real
+configuration, while `ERROR` or `DEFAULT` means it fell back to the code default. Change
+which key is read with `sample.flags.readout-key`.
+
+## Calling it from sample-react
+
 CORS already allows the Vite dev server origins `http://localhost:5174` (the port in
 `sample-react/vite.config.ts`) and `http://localhost:5173`. Add more under
 `sample.cors.allowed-origins` in

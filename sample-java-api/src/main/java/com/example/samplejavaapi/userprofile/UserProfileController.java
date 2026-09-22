@@ -1,9 +1,12 @@
 package com.example.samplejavaapi.userprofile;
 
+import com.example.samplejavaapi.flags.FeatureFlags;
+import dev.openfeature.sdk.FlagEvaluationDetails;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.WebDataBinder;
@@ -22,9 +25,16 @@ public class UserProfileController {
   private static final Logger log = LoggerFactory.getLogger(UserProfileController.class);
 
   private final UserProfileService userProfileService;
+  private final FeatureFlags featureFlags;
+  private final String readoutFlagKey;
 
-  public UserProfileController(UserProfileService userProfileService) {
+  public UserProfileController(
+      UserProfileService userProfileService,
+      FeatureFlags featureFlags,
+      @Value("${sample.flags.readout-key:show-new-feature}") String readoutFlagKey) {
     this.userProfileService = userProfileService;
+    this.featureFlags = featureFlags;
+    this.readoutFlagKey = readoutFlagKey;
   }
 
   /** Trims incoming query params so " jane@example.com " passes email validation. */
@@ -46,15 +56,24 @@ public class UserProfileController {
 
     UserProfile profile = userProfileService.getUserProfile(email);
 
+    // Server-side flag readout, the counterpart to sample-react's on-screen one:
+    // `reason` is what tells a flag that is off apart from one that does not
+    // exist or could not be fetched. Nothing is gated on it yet.
+    FlagEvaluationDetails<Boolean> flag =
+        featureFlags.booleanDetails(readoutFlagKey, false, email);
+
     // What was actually resolved, at DEBUG so the INFO line above stays the
     // one-per-request summary. Not reached when the lookup throws.
     log.debug(
-        "getUserProfile resolved email={} displayName={} account={} plan={} roles={}",
+        "getUserProfile resolved email={} displayName={} account={} plan={} roles={} flag {}={} (reason {})",
         email,
         profile.displayName(),
         profile.account().id(),
         profile.account().plan(),
-        profile.roles());
+        profile.roles(),
+        readoutFlagKey,
+        flag.getValue(),
+        flag.getReason());
 
     return profile;
   }
