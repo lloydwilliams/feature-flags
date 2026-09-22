@@ -1,5 +1,8 @@
 target/
 *.log
 
+# Log output, including the rotated .log.gz files that *.log does not match
+logs/
+
 # Datadog Java tracer - a ~20MB binary, fetched with get-dd-java-agent.sh
 dd-java-agent.jar
