@@ -16,6 +16,15 @@ if [ ! -f "$JAR" ]; then
   mvn -q clean package
 fi
 
+# Same idea as the jar above: the tracer is gitignored, so fetch it once when
+# it is missing. Without this the JVM aborts at startup with "Error opening zip
+# file or JAR manifest missing".
+AGENT="dd-java-agent.jar"
+if [ ! -f "$AGENT" ]; then
+  echo "No $AGENT yet - fetching it first…"
+  ./get-dd-java-agent.sh
+fi
+
 # exec, so the JVM replaces this shell and receives signals directly.
 echo "Starting sample-java-api on http://localhost:8080"
 #exec java -jar "$JAR"
