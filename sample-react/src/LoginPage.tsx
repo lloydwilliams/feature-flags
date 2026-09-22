@@ -133,6 +133,11 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
             type="email"
             name="email"
             autoComplete="username"
+            // Privacy masking hides this field's text from RUM, which would
+            // otherwise report clicks on it as "Masked Element". The attribute
+            // is a static label, so it names the action without exposing what
+            // the user typed.
+            data-dd-action-name="Email field"
             value={email}
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'email-error' : undefined}
@@ -156,6 +161,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
             type="password"
             name="password"
             autoComplete="current-password"
+            data-dd-action-name="Password field"
             value={password}
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'password-error' : undefined}
@@ -177,6 +183,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
           <span>Site</span>
           <select
             name="site"
+            data-dd-action-name="Site selector"
             value={site}
             aria-invalid={errors.site ? true : undefined}
             aria-describedby={errors.site ? 'site-error' : undefined}

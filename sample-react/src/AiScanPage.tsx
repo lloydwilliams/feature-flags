@@ -96,6 +96,9 @@ export function AiScanPage({ onBack, onSignOut }: AiScanPageProps) {
             type="text"
             inputMode="numeric"
             name="amount"
+            // Same as the login fields: without this, RUM reports clicks here
+            // as "Masked Element".
+            data-dd-action-name="Scan amount field"
             value={amount}
             aria-invalid={error ? true : undefined}
             aria-describedby={error ? 'amount-error' : undefined}
