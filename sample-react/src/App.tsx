@@ -133,6 +133,17 @@ export default function App() {
     // Unrelated to the SDK's own `site` init option (datadoghq.com).
     datadogRum.setUser({ id: email, email, site })
 
+    // The account comes from the profile response, so it can only be set once
+    // that call has succeeded. `id` is the only field RUM requires; `name` and
+    // `plan` arrive as `account.name` and `account.plan`.
+    if (fetched) {
+      datadogRum.setAccount({
+        id: fetched.account.id,
+        name: fetched.account.name,
+        plan: fetched.account.plan,
+      })
+    }
+
     // Make the same identity available to flag targeting. Awaited so the
     // provider has refetched its configuration for this user before we render
     // gated UI - otherwise the first paint shows the anonymous evaluation and
@@ -161,6 +172,7 @@ export default function App() {
 
   async function handleSignOut() {
     datadogRum.clearUser()
+    datadogRum.clearAccount()
     setSignedInAs(null)
     setSignedInSite(null)
     setProfile(null)

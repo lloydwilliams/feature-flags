@@ -35,9 +35,19 @@ curl "http://localhost:8080/api/users/profile?email=jane@example.com"
   "location": "Sydney, AU",
   "avatarUrl": "https://www.gravatar.com/avatar/jane?d=identicon",
   "memberSince": "2023-07-01",
-  "roles": ["user"]
+  "roles": ["user"],
+  "account": {
+    "id": "acct-2002",
+    "name": "Example Corp",
+    "plan": "pro"
+  }
 }
 ```
+
+`account` is shaped for Datadog RUM's `setAccount`, which `sample-react` calls once the
+profile comes back. `jane@` and `sam@` deliberately share `acct-2002` so account-level
+grouping has something to group; derived profiles get an account per email domain
+(`ada@acme.io` → `acct-acme-io`, "Acme").
 
 Responses:
 

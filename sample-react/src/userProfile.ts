@@ -7,6 +7,17 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 
+/**
+ * The organization a user belongs to. Shaped to pass straight to
+ * `datadogRum.setAccount`, which requires `id` and treats the rest as
+ * `account.*` attributes.
+ */
+export interface Account {
+  id: string
+  name: string
+  plan: string
+}
+
 /** Mirrors the `UserProfile` record returned by the Java API. */
 export interface UserProfile {
   email: string
@@ -20,6 +31,7 @@ export interface UserProfile {
   /** ISO date, e.g. "2021-03-15". */
   memberSince: string
   roles: string[]
+  account: Account
 }
 
 /** Error body the API returns for a 4xx. */

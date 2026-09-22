@@ -66,6 +66,12 @@ export function SignedInPage({
           <dl className="profile-details">
             <dt>Email</dt>
             <dd>{profile.email}</dd>
+            <dt>Account</dt>
+            <dd>
+              {profile.account.name} · {profile.account.plan}
+              <br />
+              <code>{profile.account.id}</code>
+            </dd>
             <dt>Location</dt>
             <dd>{profile.location}</dd>
             <dt>Member since</dt>
@@ -74,7 +80,7 @@ export function SignedInPage({
             <dd>{profile.roles.join(', ')}</dd>
           </dl>
           <p className="muted">
-            from <code>GET /api/users/profile</code>
+            from <code>GET /api/users/profile</code> · account set on RUM
           </p>
         </div>
       ) : (

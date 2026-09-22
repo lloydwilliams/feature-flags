@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserProfileService {
 
+  /** Shared by two seeded users, so account-level grouping in RUM has something to group. */
+  private static final Account EXAMPLE_CORP = new Account("acct-2002", "Example Corp", "pro");
+
   private static final Map<String, UserProfile> DIRECTORY =
       Stream.of(
               new UserProfile(
@@ -32,7 +35,8 @@ public class UserProfileService {
                   "Toronto, CA",
                   "https://www.gravatar.com/avatar/lloyd?d=identicon",
                   LocalDate.of(2021, 3, 15),
-                  List.of("admin", "flag-editor")),
+                  List.of("admin", "flag-editor"),
+                  new Account("acct-1001", "Datadog", "enterprise")),
               new UserProfile(
                   "jane@example.com",
                   "Jane",
@@ -43,7 +47,8 @@ public class UserProfileService {
                   "Sydney, AU",
                   "https://www.gravatar.com/avatar/jane?d=identicon",
                   LocalDate.of(2023, 7, 1),
-                  List.of("user")),
+                  List.of("user"),
+                  EXAMPLE_CORP),
               new UserProfile(
                   "sam@example.com",
                   "Sam",
@@ -54,7 +59,8 @@ public class UserProfileService {
                   "New York, US",
                   "https://www.gravatar.com/avatar/sam?d=identicon",
                   LocalDate.of(2022, 1, 10),
-                  List.of("user", "flag-editor")))
+                  List.of("user", "flag-editor"),
+                  EXAMPLE_CORP))
           .collect(Collectors.toUnmodifiableMap(p -> normalize(p.email()), p -> p));
 
   private final boolean strictDirectory;
@@ -83,7 +89,9 @@ public class UserProfileService {
 
   /** Builds a plausible profile from the email's local part, e.g. "ada.lovelace" -> "Ada Lovelace". */
   private static UserProfile derive(String email) {
-    String localPart = email.contains("@") ? email.substring(0, email.indexOf('@')) : email;
+    int at = email.indexOf('@');
+    String localPart = at >= 0 ? email.substring(0, at) : email;
+    String domain = at >= 0 ? email.substring(at + 1) : "";
     List<String> words =
         Stream.of(localPart.split("[._+-]+"))
             .filter(word -> !word.isBlank())
@@ -103,7 +111,20 @@ public class UserProfileService {
         "Remote",
         "https://www.gravatar.com/avatar/" + localPart + "?d=identicon",
         LocalDate.of(2024, 1, 1),
-        List.of("user"));
+        List.of("user"),
+        deriveAccount(domain));
+  }
+
+  /**
+   * Groups derived profiles by email domain, so everyone at "acme.io" shares account
+   * {@code acct-acme-io} named "Acme".
+   */
+  private static Account deriveAccount(String domain) {
+    if (domain.isBlank()) {
+      return new Account("acct-unknown", "Unknown", "trial");
+    }
+    String name = capitalize(domain.split("\\.")[0]);
+    return new Account("acct-" + domain.replace('.', '-'), name, "trial");
   }
 
   private static String capitalize(String word) {

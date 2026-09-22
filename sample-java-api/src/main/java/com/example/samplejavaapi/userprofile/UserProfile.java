@@ -14,4 +14,5 @@ public record UserProfile(
     String location,
     String avatarUrl,
     LocalDate memberSince,
-    List<String> roles) {}
+    List<String> roles,
+    Account account) {}

@@ -25,7 +25,18 @@ class UserProfileControllerTest {
         .andExpect(jsonPath("$.firstName").value("Jane"))
         .andExpect(jsonPath("$.jobTitle").value("Platform Engineer"))
         .andExpect(jsonPath("$.memberSince").value("2023-07-01"))
-        .andExpect(jsonPath("$.roles[0]").value("user"));
+        .andExpect(jsonPath("$.roles[0]").value("user"))
+        .andExpect(jsonPath("$.account.id").value("acct-2002"))
+        .andExpect(jsonPath("$.account.name").value("Example Corp"))
+        .andExpect(jsonPath("$.account.plan").value("pro"));
+  }
+
+  @Test
+  void seededUsersCanShareAnAccount() throws Exception {
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "sam@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.account.id").value("acct-2002"));
   }
 
   @Test
@@ -43,7 +54,10 @@ class UserProfileControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.firstName").value("Ada"))
         .andExpect(jsonPath("$.lastName").value("Lovelace"))
-        .andExpect(jsonPath("$.department").value("Demo"));
+        .andExpect(jsonPath("$.department").value("Demo"))
+        .andExpect(jsonPath("$.account.id").value("acct-example-com"))
+        .andExpect(jsonPath("$.account.name").value("Example"))
+        .andExpect(jsonPath("$.account.plan").value("trial"));
   }
 
   @Test
