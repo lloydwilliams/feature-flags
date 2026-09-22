@@ -44,6 +44,12 @@ export DD_DOGSTATSD_PORT=8135
 # that, and so it is visible in one place with the rest of the setup.
 export DD_REMOTE_CONFIGURATION_ENABLED=true
 
+# Both of these ride on remote configuration, and neither is on by default:
+# the startup banner reports debugger_enabled false and appsec ENABLED_INACTIVE
+# until they are set.
+export DD_DYNAMIC_INSTRUMENTATION_ENABLED=true
+export DD_APPSEC_ENABLED=true
+
 #export DD_PROFILING_DDPROF_ENABLED=true # this is the default in v1.7.0+
 #export DD_PROFILING_DDPROF_CPU_ENABLED=true
 #export DD_PROFILING_DDPROF_LIVEHEAP_ENABLED=true
