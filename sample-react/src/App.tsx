@@ -198,18 +198,29 @@ export default function App() {
     // visibly flips a moment later.
     await identifyUser(email, site)
 
-    // Sign-in and all flag work are now complete, so this reports the final
-    // values rather than the anonymous ones. Forwarded to Datadog as `info`
-    // by the Logs SDK. Site is included because it drives targeting; the email
-    // is not, to keep it out of log text where it is harder to redact than in
-    // the RUM user context.
+    // The outcome log, emitted whether or not the profile call succeeded: the
+    // earlier lines cover the click and any failure, this one records that
+    // sign-in finished and with what.
+    //
+    // Sign-in and all flag work are complete by this point, so the snapshot
+    // holds the final evaluations rather than the anonymous ones. The flags go
+    // in as attributes, queryable as `@flags.show-new-feature` instead of
+    // needing the message text parsed.
+    //
+    // Site is included because it drives targeting; the email is not, to keep
+    // it out of log text where it is harder to redact than in the RUM user
+    // context.
     const snapshot = readFlagSnapshot()
-    console.info(
-      `[flags] sign-in complete for site "${site}" — ` +
-        snapshot
-          .map((flag) => `${flag.key}=${flag.value} (${flag.reason})`)
-          .join(', '),
+    const flags = Object.fromEntries(
+      snapshot.map((flag) => [flag.key, flag.value]),
     )
+
+    datadogLogs.logger.info('Sign in complete', {
+      site,
+      profile_loaded: fetched !== null,
+      account_id: fetched?.account.id ?? null,
+      flags,
+    })
 
     setSignedInAs(email)
     setSignedInSite(site)
