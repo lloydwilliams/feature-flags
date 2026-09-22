@@ -23,6 +23,12 @@ sample:
   profile:
     # true -> unknown emails return 404 instead of a derived demo profile
     strict-directory: false
+  flags:
+    # Flag read per getUserProfile call and reported in the DEBUG line. Nothing
+    # is gated on it yet - it exists to show the provider resolving.
+    readout-key: show-new-feature
+    # Bound on how long startup waits for the first flag configuration.
+    init-timeout-seconds: 5
 
 # Logging - appenders, pattern, levels, and rotation - lives in
 # logback-spring.xml. Levels are deliberately not set here too: a
