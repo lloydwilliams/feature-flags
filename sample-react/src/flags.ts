@@ -75,6 +75,32 @@ export async function identifyUser(
   })
 }
 
+/** Every flag this app reads. Keep in step with the hooks in App. */
+export const FLAG_KEYS = ['show-datadog-logo', 'show-new-feature'] as const
+
+export interface FlagSnapshot {
+  key: string
+  value: boolean
+  reason: string
+}
+
+/**
+ * Reads all flags imperatively, for logging.
+ *
+ * Deliberately not taken from the React hooks: at the moment sign-in finishes,
+ * the component has not re-rendered for the new evaluation context yet, so the
+ * hook values would still be the anonymous ones. The client is synchronous and
+ * already reconciled once `setContext` has been awaited, so this reports what
+ * the user will actually see.
+ */
+export function readFlagSnapshot(): FlagSnapshot[] {
+  const client = OpenFeature.getClient()
+  return FLAG_KEYS.map((key) => {
+    const details = client.getBooleanDetails(key, false)
+    return { key, value: details.value, reason: details.reason ?? 'unknown' }
+  })
+}
+
 /** Returns to the anonymous context on sign-out. */
 export async function resetUserContext(): Promise<void> {
   await OpenFeature.setContext(anonymousContext)

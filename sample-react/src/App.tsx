@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { datadogRum } from '@datadog/browser-rum'
 import {
   useBooleanFlagDetails,
@@ -16,6 +16,7 @@ import {
   identifyUser,
   isConfigured,
   missingConfig,
+  readFlagSnapshot,
   resetUserContext,
 } from './flags'
 import type { Site } from './sites'
@@ -88,6 +89,16 @@ function FlagReadout({ flagKey }: { flagKey: string }) {
 
 type View = 'home' | 'new-feature'
 
+/** Which screen is actually on display, after the flag guard is applied. */
+type ActiveView = 'login' | 'signed-in' | 'new-feature'
+
+/** Names reported to Datadog RUM via startView. */
+const RUM_VIEW_NAMES: Record<ActiveView, string> = {
+  login: 'Login',
+  'signed-in': 'Signed In',
+  'new-feature': 'New Feature',
+}
+
 /** Simulated backend latency for sign-in. */
 const SIGN_IN_DELAY_MS = 1000
 
@@ -116,6 +127,19 @@ export default function App() {
     // visibly flips a moment later.
     await identifyUser(email, site)
 
+    // Sign-in and all flag work are now complete, so this reports the final
+    // values rather than the anonymous ones. Forwarded to Datadog as `info`
+    // by the Logs SDK. Site is included because it drives targeting; the email
+    // is not, to keep it out of log text where it is harder to redact than in
+    // the RUM user context.
+    const snapshot = readFlagSnapshot()
+    console.info(
+      `[flags] sign-in complete for site "${site}" — ` +
+        snapshot
+          .map((flag) => `${flag.key}=${flag.value} (${flag.reason})`)
+          .join(', '),
+    )
+
     setSignedInAs(email)
     setSignedInSite(site)
     setView('home')
@@ -129,32 +153,58 @@ export default function App() {
     await resetUserContext()
   }
 
-  // View switching by state rather than a router: two views do not justify the
-  // dependency yet. Swap in react-router when real URLs are needed.
+  // View switching by state rather than a router: three screens but no URLs
+  // yet. Swap in react-router when real routes are needed.
   //
   // `showNewFeature` is re-checked here on every render, so turning the flag
   // off acts as a kill switch and returns anyone already on the page to home.
+  //
+  // Derived once and used for both rendering and the RUM view name, so the two
+  // cannot disagree about which screen the user is on.
+  const activeView: ActiveView = !signedInAs
+    ? 'login'
+    : view === 'new-feature' && showNewFeature
+      ? 'new-feature'
+      : 'signed-in'
+
+  // Without a router the URL never changes, so RUM would otherwise report
+  // every screen under a single "/" view. startView (not setViewName) is what
+  // produces distinct views: setViewName only renames the current one, leaving
+  // view.id unchanged and the screens indistinguishable in RUM.
+  //
+  // The ref guards against starting the same view twice - StrictMode
+  // double-invokes effects in development, which would otherwise duplicate
+  // every view.
+  const startedViewName = useRef<string | null>(null)
+  useEffect(() => {
+    const name = RUM_VIEW_NAMES[activeView]
+    if (startedViewName.current === name) return
+    startedViewName.current = name
+    datadogRum.startView(name)
+  }, [activeView])
+
   function currentView() {
-    if (!signedInAs) return <LoginPage onSignIn={handleSignIn} />
-
-    if (view === 'new-feature' && showNewFeature) {
-      return (
-        <NewFeaturePage
-          onBack={() => setView('home')}
-          onSignOut={handleSignOut}
-        />
-      )
+    switch (activeView) {
+      case 'login':
+        return <LoginPage onSignIn={handleSignIn} />
+      case 'new-feature':
+        return (
+          <NewFeaturePage
+            onBack={() => setView('home')}
+            onSignOut={handleSignOut}
+          />
+        )
+      case 'signed-in':
+        return (
+          <SignedInPage
+            email={signedInAs!}
+            site={signedInSite}
+            showNewFeature={showNewFeature}
+            onOpenNewFeature={() => setView('new-feature')}
+            onSignOut={handleSignOut}
+          />
+        )
     }
-
-    return (
-      <SignedInPage
-        email={signedInAs}
-        site={signedInSite}
-        showNewFeature={showNewFeature}
-        onOpenNewFeature={() => setView('new-feature')}
-        onSignOut={handleSignOut}
-      />
-    )
   }
 
   return (

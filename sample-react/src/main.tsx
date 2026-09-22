@@ -42,6 +42,9 @@ datadogRum.init({
   version: DD_VERSION,
   sessionSampleRate: 100,
   sessionReplaySampleRate: 20,
+  // App owns view creation via startView(). Without this, RUM would also
+  // create its own initial "/" view, duplicating every session's first screen.
+  trackViewsManually: true,
   trackUserInteractions: true,
   trackResources: true,
   trackLongTasks: true,
