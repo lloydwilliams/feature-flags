@@ -148,7 +148,7 @@ export default function App() {
     let fetched: UserProfile | null = null
     let failure: string | null = null
     try {
-      fetched = await fetchUserProfile(email)
+      fetched = await fetchUserProfile(email, site)
 
       datadogLogs.logger.debug('Sign in profile resolved', {
         site,

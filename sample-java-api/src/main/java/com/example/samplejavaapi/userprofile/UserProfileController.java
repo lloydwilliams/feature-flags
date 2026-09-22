@@ -46,13 +46,19 @@ public class UserProfileController {
   /**
    * getUserProfile - returns the profile for the given email address.
    *
-   * <p>{@code GET /api/users/profile?email=jane@example.com}
+   * <p>{@code GET /api/users/profile?email=jane@example.com&site=Toronto}
+   *
+   * <p>{@code site} is the value chosen in the sample-react drop-down. It does not affect the
+   * profile returned - it is passed only so server-side flag rules can target on it, the same
+   * attribute the browser provider sends. Optional, so existing callers and plain curl still work;
+   * a rule matching on site simply will not match when it is absent.
    */
   @GetMapping("/profile")
   public UserProfile getUserProfile(
       @RequestParam("email") @NotBlank @Email(message = "must be a valid email address")
-          String email) {
-    log.info("getUserProfile requested for email={}", email);
+          String email,
+      @RequestParam(value = "site", required = false) String site) {
+    log.info("getUserProfile requested for email={} site={}", email, site);
 
     UserProfile profile = userProfileService.getUserProfile(email);
 
@@ -60,13 +66,14 @@ public class UserProfileController {
     // `reason` is what tells a flag that is off apart from one that does not
     // exist or could not be fetched. Nothing is gated on it yet.
     FlagEvaluationDetails<Boolean> flag =
-        featureFlags.booleanDetails(readoutFlagKey, false, email);
+        featureFlags.booleanDetails(readoutFlagKey, false, email, site);
 
     // What was actually resolved, at DEBUG so the INFO line above stays the
     // one-per-request summary. Not reached when the lookup throws.
     log.debug(
-        "getUserProfile resolved email={} displayName={} account={} plan={} roles={} flag {}={} (reason {})",
+        "getUserProfile resolved email={} site={} displayName={} account={} plan={} roles={} flag {}={} (reason {})",
         email,
+        site,
         profile.displayName(),
         profile.account().id(),
         profile.account().plan(),
