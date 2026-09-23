@@ -114,6 +114,17 @@ All three fields are required. `amount` must be a whole number below 1000 — th
 `sample-react` applies before calling, re-checked here because a client-side rule is a
 convenience, not a guarantee.
 
+Two ready-made calls, differing only in the site, for checking how the flag is targeted:
+
+```bash
+./sample-java-api/call-start-ai-scan-toronto.sh
+./sample-java-api/call-start-ai-scan-houston.sh
+```
+
+Both accept `AMOUNT`, `EMAIL`, and `API_BASE_URL` as environment overrides. The response
+shows the decision; the per-call DEBUG line in the log shows the `reason` behind it, which is
+what distinguishes a targeting rule matching from the flag simply being on for everyone.
+
 The `show-ai-scan` flag is evaluated for the caller's site, so the same Datadog rule that
 shows the button in the UI governs the backend:
 
