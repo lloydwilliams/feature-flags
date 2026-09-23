@@ -6,11 +6,15 @@ import com.example.samplejavaapi.userprofile.UserProfileNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -58,6 +62,28 @@ public class ApiExceptionHandler {
   public ResponseEntity<Map<String, Object>> handleMissingParam(
       MissingServletRequestParameterException ex) {
     return error(HttpStatus.BAD_REQUEST, "Missing required parameter '" + ex.getParameterName() + "'");
+  }
+
+  /**
+   * Body validation, as opposed to the query-param violations above: without this, a bad
+   * StartAIScan body would return Spring's default error shape instead of this API's.
+   */
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<Map<String, Object>> handleInvalidBody(MethodArgumentNotValidException ex) {
+    String message =
+        ex.getBindingResult().getFieldErrors().stream()
+            .map(FieldError::getDefaultMessage)
+            .filter(Objects::nonNull)
+            .sorted()
+            .collect(Collectors.joining("; "));
+    return error(HttpStatus.BAD_REQUEST, message.isBlank() ? "Invalid request body" : message);
+  }
+
+  /** Malformed or absent JSON, which never reaches validation. */
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<Map<String, Object>> handleUnreadableBody(
+      HttpMessageNotReadableException ex) {
+    return error(HttpStatus.BAD_REQUEST, "Request body is missing or not valid JSON");
   }
 
   private static ResponseEntity<Map<String, Object>> error(HttpStatus status, String message) {
