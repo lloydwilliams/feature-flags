@@ -1,13 +1,18 @@
 import { useState, type FormEvent } from 'react'
 import { datadogLogs } from '@datadog/browser-logs'
 import { datadogRum } from '@datadog/browser-rum'
+import { startAiScan, type AiScanResult } from './aiScan'
+import { ApiError } from './api'
 
 export interface AiScanPageProps {
+  /** Signed-in identity and chosen site, forwarded as the flag context. */
+  email: string
+  site: string
   onBack: () => void
   onSignOut: () => void
 }
 
-/** Exclusive upper bound on the scan amount. */
+/** Exclusive upper bound on the scan amount. Matches the API's own validation. */
 const MAX_AMOUNT = 1000
 
 /**
@@ -40,37 +45,90 @@ function validateAmount(raw: string): string | null {
  * own view - App starts "AI Scan Assist" in RUM when this becomes the active
  * view. Gated on `show-ai-scan` and, because it hangs off the new feature, on
  * `show-new-feature` too; App re-checks both on every render.
+ *
+ * Reaching this screen only means the browser-side flag was on. Whether a scan
+ * actually runs is decided by the API, which evaluates `show-ai-scan`
+ * server-side for this site - so a site can see the button and still be told
+ * the feature is not available there.
  */
-export function AiScanPage({ onBack, onSignOut }: AiScanPageProps) {
+export function AiScanPage({
+  email,
+  site,
+  onBack,
+  onSignOut,
+}: AiScanPageProps) {
   const [amount, setAmount] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [scanned, setScanned] = useState<number | null>(null)
+  const [pending, setPending] = useState(false)
+  const [result, setResult] = useState<AiScanResult | null>(null)
 
-  function handleScan(event: FormEvent<HTMLFormElement>) {
+  async function handleScan(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (pending) return
 
     const found = validateAmount(amount)
     setError(found)
     if (found) {
-      // Clear any previous success, so the completion message can never sit
-      // alongside an error about the current input.
-      setScanned(null)
+      // Clear any previous outcome, so a stale message cannot sit alongside an
+      // error about the current input.
+      setResult(null)
       return
     }
 
     const value = Number(amount.trim())
+    setResult(null)
+    setPending(true)
 
-    // Logs SDK, so this arrives in Datadog Logs rather than only the console.
-    // The amount is duplicated into the log context, where it is queryable as
-    // an attribute instead of having to be parsed out of the message.
-    datadogLogs.logger.info(`AI scan completed for ${value}`, {
-      scan_type: 'ai',
-      amount: value,
-    })
+    try {
+      const scan = await startAiScan(value, email, site)
 
-    datadogRum.addAction('Scan Completed', { scan_type: 'ai', amount: value })
+      // Logs SDK, so this arrives in Datadog Logs rather than only the console.
+      // Amount and site are duplicated into the context, where they are
+      // queryable as attributes instead of parsed out of the message.
+      datadogLogs.logger.info(
+        scan.enabled
+          ? `AI scan completed for ${value}`
+          : `AI scan unavailable at site ${site}`,
+        { scan_type: 'ai', amount: value, site, enabled: scan.enabled },
+      )
 
-    setScanned(value)
+      // Only a scan that actually ran is a completed scan; a gated-off site
+      // would otherwise inflate this action's count with non-events.
+      if (scan.enabled) {
+        datadogRum.addAction('Scan Completed', {
+          scan_type: 'ai',
+          amount: value,
+          site,
+        })
+      }
+
+      setResult(scan)
+    } catch (caught) {
+      const message =
+        caught instanceof Error ? caught.message : String(caught)
+      const status = caught instanceof ApiError ? caught.status : null
+
+      // Same level split as sign-in: a 4xx is a rejection the API handled,
+      // anything else is a fault.
+      if (status !== null && status < 500) {
+        datadogLogs.logger.warn('AI scan rejected by the API', {
+          scan_type: 'ai',
+          amount: value,
+          site,
+          status,
+        })
+      } else {
+        datadogLogs.logger.error(
+          'AI scan failed calling the API',
+          { scan_type: 'ai', amount: value, site, status },
+          caught instanceof Error ? caught : undefined,
+        )
+      }
+
+      setError(message)
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -82,7 +140,12 @@ export function AiScanPage({ onBack, onSignOut }: AiScanPageProps) {
       {/* noValidate so this component is the single source of validation
           truth, matching LoginPage: one styled, screen-reader-visible error
           instead of native browser bubbles. */}
-      <form className="form" onSubmit={handleScan} noValidate>
+      <form
+        className="form"
+        onSubmit={handleScan}
+        noValidate
+        aria-busy={pending || undefined}
+      >
         <label className="field">
           <span>Number to scan</span>
           {/*
@@ -107,6 +170,7 @@ export function AiScanPage({ onBack, onSignOut }: AiScanPageProps) {
               setError(null)
             }}
             placeholder={`0 - ${MAX_AMOUNT - 1}`}
+            disabled={pending}
           />
           {error && (
             <span className="field-error" id="amount-error" role="alert">
@@ -115,14 +179,17 @@ export function AiScanPage({ onBack, onSignOut }: AiScanPageProps) {
           )}
         </label>
 
-        <button type="submit" className="button">
-          Scan
+        <button type="submit" className="button" disabled={pending}>
+          {pending ? 'Scanning…' : 'Scan'}
         </button>
       </form>
 
-      {scanned !== null && (
-        <p className="status status--ok" role="status">
-          Scan complete — scanned {scanned}.
+      {result && (
+        <p
+          className={result.enabled ? 'status status--ok' : 'status status--warn'}
+          role="status"
+        >
+          {result.message}
         </p>
       )}
 
