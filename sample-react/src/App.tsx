@@ -22,11 +22,8 @@ import {
   resetUserContext,
 } from './flags'
 import type { Site } from './sites'
-import {
-  fetchUserProfile,
-  ProfileApiError,
-  type UserProfile,
-} from './userProfile'
+import { ApiError } from './api'
+import { fetchUserProfile, type UserProfile } from './userProfile'
 
 /**
  * Reports the provider's real status, not just whether config was present.
@@ -132,6 +129,12 @@ export default function App() {
   const [view, setView] = useState<View>('home')
 
   async function handleSignIn(email: string, site: Site) {
+    // Browser-side log for the click itself, so a sign-in is visible in Datadog
+    // Logs even when the API never answers. The site is included because it
+    // drives flag targeting; the email is not, to keep it out of log text where
+    // it is harder to redact than in the RUM user context.
+    datadogLogs.logger.info('Sign in requested', { site })
+
     // The real backend call for sign-in: sample-java-api's getUserProfile,
     // keyed on the email just entered. LoginPage shows its pending state for as
     // long as this takes.
@@ -139,12 +142,6 @@ export default function App() {
     // A failure here does not block sign-in - the flag demo still needs to work
     // when the Java API is not running - so the error is carried to the
     // signed-in page instead of thrown back at the form.
-    // Browser-side log for the click itself, so a sign-in is visible in Datadog
-    // Logs even when the API never answers. The site is included because it
-    // drives flag targeting; the email is not, to keep it out of log text where
-    // it is harder to redact than in the RUM user context.
-    datadogLogs.logger.info('Sign in requested', { site })
-
     let fetched: UserProfile | null = null
     let failure: string | null = null
     try {
@@ -158,7 +155,7 @@ export default function App() {
       })
     } catch (error) {
       failure = error instanceof Error ? error.message : String(error)
-      const status = error instanceof ProfileApiError ? error.status : null
+      const status = error instanceof ApiError ? error.status : null
 
       // Levels mirror what the API logged on its own side: a 4xx is a rejection
       // it handled, anything else - 5xx, a timeout, no response at all - is a
@@ -335,6 +332,8 @@ export default function App() {
       case 'ai-scan':
         return (
           <AiScanPage
+            email={signedInAs!}
+            site={signedInSite!}
             onBack={() => {
               abandonOperation()
               setView('new-feature')

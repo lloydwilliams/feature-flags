@@ -5,7 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { OpenFeatureProvider } from '@openfeature/react-sdk'
 import App from './App'
 import { initializeFlags } from './flags'
-import { API_BASE_URL } from './userProfile'
+import { API_BASE_URL } from './api'
 import './index.css'
 
 // Shared by both SDKs so service/env/version cannot drift apart, which would
