@@ -14,6 +14,27 @@
         </encoder>
     </appender>
 
+    <!--
+      Three sources of stack traces that are expected in a test run, not faults.
+      Silenced here only: logback-spring.xml, which the app actually runs with,
+      is untouched.
+
+      The flag provider cannot initialize without dd-java-agent, and the
+      provider also reports the OTel API classes the agent would supply as
+      missing. Both arrive with a full stack trace. FeatureFlagsConfig already
+      catches the failure and logs one WARN explaining the fallback, which is
+      the part worth reading.
+    -->
+    <logger name="dev.openfeature.sdk.ProviderRepository" level="off" />
+    <logger name="datadog.trace.api.openfeature.Provider" level="off" />
+
+    <!--
+      The error@ and warn@ demo hooks are tested deliberately, so their ERROR
+      log - stack trace attached, by design - is expected output rather than a
+      signal. The tests assert on the HTTP responses, not on these lines.
+    -->
+    <logger name="com.example.samplejavaapi.web.ApiExceptionHandler" level="off" />
+
     <root level="info">
         <appender-ref ref="Console" />
     </root>
