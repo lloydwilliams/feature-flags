@@ -27,6 +27,9 @@ sample:
     # Flag read per getUserProfile call and reported in the DEBUG line. Nothing
     # is gated on it yet - it exists to show the provider resolving.
     readout-key: show-new-feature
+    # Flag that gates StartAIScan. Must exist as a server-side flag, not only a
+    # RUM one, or it resolves FLAG_NOT_FOUND and the scan stays gated off.
+    ai-scan-key: show-ai-scan
     # Bound on how long startup waits for the first flag configuration.
     init-timeout-seconds: 5
 

@@ -100,6 +100,43 @@ The check is on the start of the address and is case-insensitive, so `ERROR@…`
 the log lines come from
 [ApiExceptionHandler.java](src/main/java/com/example/samplejavaapi/web/ApiExceptionHandler.java).
 
+## StartAIScan
+
+`POST /api/ai-scan/start`
+
+```bash
+curl -X POST http://localhost:8080/api/ai-scan/start \
+  -H 'Content-Type: application/json' \
+  -d '{"amount": 42, "email": "jane@example.com", "site": "Toronto"}'
+```
+
+All three fields are required. `amount` must be a whole number below 1000 — the same rule
+`sample-react` applies before calling, re-checked here because a client-side rule is a
+convenience, not a guarantee.
+
+The `show-ai-scan` flag is evaluated for the caller's site, so the same Datadog rule that
+shows the button in the UI governs the backend:
+
+```json
+{"enabled": true,  "site": "Toronto", "amount": 42,
+ "message": "AI Scan Successful at site: Toronto"}
+
+{"enabled": false, "site": "Austin",  "amount": 42,
+ "message": "Sorry this feature is not available at this site yet: Austin"}
+```
+
+A gated-off scan is **200 with `enabled: false`**, not an error — nothing went wrong, the
+feature simply is not live for that site, and the UI needs the message either way. Branch on
+`enabled` rather than the status code. Invalid input is a 400 in the usual error shape.
+
+The flag defaults to **false**, so a provider that cannot be reached leaves the feature off
+rather than announcing success it cannot back up. Change the key with
+`sample.flags.ai-scan-key`.
+
+> **`show-ai-scan` must exist as a server-side flag**, not only as a RUM one. If it does not,
+> evaluation returns `reason ERROR, errorCode FLAG_NOT_FOUND` and every site is gated off —
+> visible in the DEBUG line for the call.
+
 ### Profile data
 
 Profiles come from an in-memory directory in
