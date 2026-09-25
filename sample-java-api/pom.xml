@@ -26,7 +26,31 @@
       agent, so bump this when that moves on.
     -->
     <dd-openfeature.version>1.66.0</dd-openfeature.version>
+    <!--
+      Deliberately named so it cannot be confused with the parent's own
+      opentelemetry.version (3.5.6 manages 1.49.0): the BOM import below pins
+      these artifacts, rather than overriding what Boot manages everywhere.
+    -->
+    <opentelemetry-bom.version>1.47.0</opentelemetry-bom.version>
   </properties>
+
+  <!--
+    Imported so the OpenTelemetry artifacts below share one version. The
+    dd-openfeature provider builds its evaluation metrics on the OTel API and
+    logs "Evaluation metrics unavailable - OTel API classes not on classpath"
+    without them.
+  -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-bom</artifactId>
+        <version>${opentelemetry-bom.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -51,6 +75,16 @@
       <groupId>com.datadoghq</groupId>
       <artifactId>dd-openfeature</artifactId>
       <version>${dd-openfeature.version}</version>
+    </dependency>
+
+    <!-- Versions come from the imported BOM above. -->
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-sdk-metrics</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.opentelemetry</groupId>
+      <artifactId>opentelemetry-exporter-otlp</artifactId>
     </dependency>
 
     <dependency>
