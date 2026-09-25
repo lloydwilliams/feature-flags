@@ -50,6 +50,20 @@ export DD_REMOTE_CONFIGURATION_ENABLED=true
 export DD_DYNAMIC_INSTRUMENTATION_ENABLED=true
 export DD_APPSEC_ENABLED=true
 
+# Exports metrics over OTLP, a separate path from the DogStatsD one above, to
+# http://localhost:4318/v1/metrics by default.
+#
+# That endpoint needs an OTLP receiver listening. Nothing answers on 4317 or
+# 4318 here and this Agent's /info lists no OTLP endpoint, so until
+# otlp_config.receiver is enabled in datadog.yaml the tracer logs
+#   OTLP export to http://localhost:4318/v1/metrics failed with exception:
+#   java.net.ConnectException ... (Will not log warnings for 5 minutes)
+# and drops them. The app itself is unaffected.
+#
+# Companion knobs: DD_METRICS_OTEL_INTERVAL, DD_METRICS_OTEL_TIMEOUT,
+# DD_METRICS_OTEL_CARDINALITY_LIMIT, DD_METRICS_OTEL_EXPORTER.
+export DD_METRICS_OTEL_ENABLED=true
+
 # Server-side feature flags need a Datadog API key, which is not committed.
 # Export DD_API_KEY in your shell, or put it in sample-java-api/.env.local -
 # gitignored by the same rule that covers sample-react's.
