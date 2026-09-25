@@ -70,7 +70,7 @@ class AiScanControllerTest {
   @Test
   void evaluatesTheFlagForTheSiteTheCallerSent() throws Exception {
     when(featureFlags.booleanDetails(
-            eq("show-ai-scan"), eq(false), eq("lloyd.williams@datadoghq.com"), eq("Austin")))
+            eq("show-ai-scan"), eq(false), eq("lloyd.williams@datadoghq.com"), eq("Seattle")))
         .thenReturn(
             FlagEvaluationDetails.<Boolean>builder().value(true).reason("TARGETING_MATCH").build());
 
@@ -80,10 +80,10 @@ class AiScanControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(
                     """
-                    {"amount": 7, "email": "lloyd.williams@datadoghq.com", "site": "Austin"}
+                    {"amount": 7, "email": "lloyd.williams@datadoghq.com", "site": "Seattle"}
                     """))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.message").value("AI Scan Successful at site: Austin"));
+        .andExpect(jsonPath("$.message").value("AI Scan Successful at site: Seattle"));
   }
 
   @Test
