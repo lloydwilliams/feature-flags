@@ -71,7 +71,7 @@ public class UserProfileController {
     // What was actually resolved, at DEBUG so the INFO line above stays the
     // one-per-request summary. Not reached when the lookup throws.
     log.debug(
-        "getUserProfile resolved email={} site={} displayName={} account={} plan={} roles={} flag {}={} (reason {})",
+        "getUserProfile resolved email={} site={} displayName={} account={} plan={} roles={} flag {}={} (reason {}, variant {})",
         email,
         site,
         profile.displayName(),
@@ -80,7 +80,8 @@ public class UserProfileController {
         profile.roles(),
         readoutFlagKey,
         flag.getValue(),
-        flag.getReason());
+        flag.getReason(),
+        flag.getVariant());
 
     return profile;
   }

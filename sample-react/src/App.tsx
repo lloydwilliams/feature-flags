@@ -81,6 +81,19 @@ function FlagReadout({ flagKey }: { flagKey: string }) {
       <code>{flagKey}</code> = <strong>{String(details.value)}</strong>
       {' · reason '}
       <code>{details.reason ?? 'unknown'}</code>
+      {/*
+        Only rendered when the provider supplies one, so a provider that omits
+        variants does not leave an empty label behind. A percentage rollout
+        names the bucket the user landed in, which is what distinguishes "in
+        the rollout and enabled" from "in the rollout and not"; for a boolean
+        flag Datadog reports it as "true"/"false".
+      */}
+      {details.variant ? (
+        <>
+          {' · variant '}
+          <code>{details.variant}</code>
+        </>
+      ) : null}
       {details.errorCode ? (
         <>
           {' · error '}
