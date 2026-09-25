@@ -14,9 +14,11 @@ const DD_CLIENT_TOKEN = import.meta.env.VITE_DD_CLIENT_TOKEN || ''
 const DD_SITE = import.meta.env.VITE_DD_SITE || 'datadoghq.com'
 const DD_ENV = import.meta.env.VITE_DD_ENV || 'dev'
 const DD_SERVICE = 'sample-react'
-// Matches package.json and the -Ddd.version the Java tracer reports, so RUM,
-// Logs, and APM all tag the same release.
-const DD_VERSION = '1.0.0'
+// Defaults to package.json's version and the -Ddd.version the dev Java script
+// reports, so RUM, Logs, and APM all tag the same release. Overridable like
+// DD_ENV above, which is how prod-sample-react.sh reports 2.0.0 to match
+// prod-sample-java-api.sh.
+const DD_VERSION = import.meta.env.VITE_DD_VERSION || '1.0.0'
 
 // Logs first, so console output emitted during RUM's own initialization is
 // still captured. Log-to-RUM correlation is resolved when each log is sent,
