@@ -73,7 +73,10 @@ fi
 # flag to the exec line below when running on Linux.
 # -Ddd.profiling.enabled=true
 
-#export EXPORT DD_ENV=prod
+# Redundant with -Ddd.env=prod on the exec line below, which is what actually
+# sets the env; kept commented as the env-var alternative. The stray second
+# EXPORT would have made this a no-op if uncommented.
+#export DD_ENV=prod
 
 # -Ddd.runtime.metrics.enabled is already the tracer default; set explicitly so
 # the demo does not depend on that default staying true.
