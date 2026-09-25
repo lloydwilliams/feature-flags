@@ -53,21 +53,25 @@ public class AiScanController {
 
     // errorCode as well as reason: reason ERROR alone does not say whether the
     // key is missing from the flag configuration or the provider failed, and
-    // those need different fixes.
+    // those need different fixes. variant names the rollout bucket when the
+    // reason is SPLIT; for a boolean flag Datadog reports it as "true"/"false".
     log.debug(
-        "StartAIScan flag {}={} (reason {}, errorCode {}) for site={}",
+        "StartAIScan flag {}={} (reason {}, variant {}, errorCode {}) for site={}",
         aiScanFlagKey,
         flag.getValue(),
         flag.getReason(),
+        flag.getVariant(),
         flag.getErrorCode(),
         request.site());
 
     if (!Boolean.TRUE.equals(flag.getValue())) {
       log.info("StartAIScan not available at site={} amount={}", request.site(), request.amount());
-      return AiScanResponse.disabled(request.site(), request.amount());
+      return AiScanResponse.disabled(
+          request.site(), request.amount(), flag.getReason(), flag.getVariant());
     }
 
     log.info("StartAIScan completed at site={} amount={}", request.site(), request.amount());
-    return AiScanResponse.enabled(request.site(), request.amount());
+    return AiScanResponse.enabled(
+        request.site(), request.amount(), flag.getReason(), flag.getVariant());
   }
 }

@@ -40,6 +40,17 @@ class AiScanControllerTest {
         .thenReturn(FlagEvaluationDetails.<Boolean>builder().value(value).reason("STATIC").build());
   }
 
+  /** A percentage rollout: reason SPLIT, with the bucket named in variant. */
+  private void flagReturnsFromRollout(boolean value, String variant) {
+    when(featureFlags.booleanDetails(anyString(), anyBoolean(), anyString(), anyString()))
+        .thenReturn(
+            FlagEvaluationDetails.<Boolean>builder()
+                .value(value)
+                .reason("SPLIT")
+                .variant(variant)
+                .build());
+  }
+
   @Test
   void runsTheScanWhenTheFlagIsOnForTheSite() throws Exception {
     flagReturns(true);
@@ -51,6 +62,31 @@ class AiScanControllerTest {
         .andExpect(jsonPath("$.site").value("Toronto"))
         .andExpect(jsonPath("$.amount").value(42))
         .andExpect(jsonPath("$.message").value("AI Scan Successful at site: Toronto"));
+  }
+
+  @Test
+  void reportsTheEvaluationReasonAndRolloutVariant() throws Exception {
+    flagReturnsFromRollout(true, "on-40-percent");
+
+    mockMvc
+        .perform(post("/api/ai-scan/start").contentType(MediaType.APPLICATION_JSON).content(BODY))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.enabled").value(true))
+        .andExpect(jsonPath("$.reason").value("SPLIT"))
+        .andExpect(jsonPath("$.variant").value("on-40-percent"));
+  }
+
+  @Test
+  void omitsVariantWhenTheProviderSuppliesNone() throws Exception {
+    flagReturns(true);
+
+    mockMvc
+        .perform(post("/api/ai-scan/start").contentType(MediaType.APPLICATION_JSON).content(BODY))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.reason").value("STATIC"))
+        // Jackson is configured to drop nulls, so the key is absent rather than
+        // present-and-null - callers should treat missing as "no variant".
+        .andExpect(jsonPath("$.variant").doesNotExist());
   }
 
   @Test

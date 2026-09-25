@@ -10,6 +10,18 @@ export interface AiScanResult {
   enabled: boolean
   site: string
   amount: number
+  /**
+   * Why the flag evaluated as it did, straight from the server-side evaluation:
+   * `TARGETING_MATCH` for a rule naming this site, `SPLIT` for a percentage
+   * rollout, `STATIC` when neither applied.
+   */
+  reason?: string
+  /**
+   * Which rollout bucket the caller landed in, when the reason is `SPLIT`.
+   * Datadog reports it as `"true"`/`"false"` for boolean flags, so it is
+   * usually present; the API omits the field when the provider supplies none.
+   */
+  variant?: string
   /** Human-readable line, ready to show. Composed by the API, not here. */
   message: string
 }
