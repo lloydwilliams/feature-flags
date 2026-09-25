@@ -14,3 +14,6 @@ dist/
 # Local env files (may contain tokens)
 .env.local
 .env*.local
+
+# Archives - build output or agent config bundles, not source
+*.zip
