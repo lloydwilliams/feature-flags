@@ -36,9 +36,8 @@ Template variables `env` (`dev`) and `version` (`1.0.0`) match what the apps rep
 [run-sample-java-api.sh](../sample-java-api/run-sample-java-api.sh), and `DD_ENV` /
 `DD_VERSION` in [main.tsx](../sample-react/src/main.tsx).
 
-The prod variants differ, so switch the variables to see that data: `prod-sample-java-api.sh`
-reports `env:prod` with `version:2.0.0`, while `prod-sample-react.sh` only sets
-`VITE_DD_ENV=prod` and stays on `version:1.0.0`.
+The prod scripts report `env:prod` and `version:2.0.0` from both services, so switch the
+variables to those values to see that data.
 
 ## Exporting
 
