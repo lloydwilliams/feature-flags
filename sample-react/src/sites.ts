@@ -1,5 +1,5 @@
 /**
- * The 20 largest metropolitan areas across the USA and Canada, combined.
+ * The 30 largest metropolitan areas across the USA and Canada, combined.
  *
  * Metro area, not city proper - so Dallas ranks above Philadelphia, and
  * Riverside makes the list on the strength of the Inland Empire rather than the
@@ -10,12 +10,14 @@
  * Sources: US Census Bureau Metropolitan Statistical Areas and Statistics
  * Canada Census Metropolitan Areas, via
  * https://en.wikipedia.org/wiki/List_of_North_American_metropolitan_areas_by_population
- * (2024-2025 estimates). Membership near the 20-item cut-off shifts with the
- * vintage: Vancouver sits at 21 and San Diego at 20, close enough that a
- * different year's estimates could swap them.
+ * (2024-2025 estimates). Ordered by the published population figures rather
+ * than by that page's rank column, which numbers Mexican metros inline.
  *
- * Only Toronto and Montreal qualify from Canada on a combined ranking - the
- * next Canadian metro, Vancouver, falls just outside the twenty.
+ * Three Canadian metros qualify on a combined ranking: Toronto at 6, Montreal
+ * at 15, Vancouver at 21. Calgary, Edmonton, and Ottawa all fall outside the
+ * thirty. Membership at the cut-off is tight - Sacramento takes the last place
+ * at ~2.46M with Pittsburgh at ~2.43M just behind, so a different vintage of
+ * the estimates could swap them.
  *
  * Listed here largest first, to keep that provenance visible. `SITES` is what
  * the UI renders, sorted alphabetically.
@@ -41,6 +43,16 @@ const METRO_AREAS_BY_POPULATION = [
   'Minneapolis',
   'Tampa',
   'San Diego',
+  'Vancouver',
+  'Denver',
+  'Orlando',
+  'Charlotte',
+  'Baltimore',
+  'St. Louis',
+  'San Antonio',
+  'Austin',
+  'Portland',
+  'Sacramento',
 ] as const
 
 export type Site = (typeof METRO_AREAS_BY_POPULATION)[number]
