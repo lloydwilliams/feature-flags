@@ -63,6 +63,8 @@ export DD_APPSEC_ENABLED=true
 # Companion knobs: DD_METRICS_OTEL_INTERVAL, DD_METRICS_OTEL_TIMEOUT,
 # DD_METRICS_OTEL_CARDINALITY_LIMIT, DD_METRICS_OTEL_EXPORTER.
 export DD_METRICS_OTEL_ENABLED=true
+export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 
 # Server-side feature flags need a Datadog API key, which is not committed.
 # Export DD_API_KEY in your shell, or put it in sample-java-api/.env.local -
