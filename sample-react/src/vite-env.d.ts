@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_DD_SITE?: string
   /** e.g. dev, staging, prod */
   readonly VITE_DD_ENV?: string
+  /** Release tag for RUM and Logs. Defaults to 1.0.0. */
+  readonly VITE_DD_VERSION?: string
   /** sample-java-api origin. Defaults to http://localhost:8080. */
   readonly VITE_API_BASE_URL?: string
 }
