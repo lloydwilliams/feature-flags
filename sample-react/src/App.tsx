@@ -271,6 +271,17 @@ export default function App() {
     abandonOperation()
     datadogRum.clearUser()
     datadogRum.clearAccount()
+
+    // Ends the RUM session, so the next visit is a separate session rather than
+    // a continuation of this user's. Last of the Datadog calls: the abandoned
+    // operation vital and the identity clearing above still belong to the
+    // session being closed.
+    //
+    // Datadog does not open a replacement immediately - the next user
+    // interaction does - so a signed-out browser sits without a session until
+    // someone clicks.
+    datadogRum.stopSession()
+
     setSignedInAs(null)
     setSignedInSite(null)
     setProfile(null)
