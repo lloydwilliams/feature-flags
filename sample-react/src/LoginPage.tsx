@@ -114,7 +114,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
 
   return (
     <section className="panel">
-      <h1>Sign in</h1>
+      <h1>Login</h1>
 
       {/*
         noValidate so this component is the single source of validation truth:
@@ -210,7 +210,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
         </label>
 
         <button type="submit" className="button" disabled={pending}>
-          {pending ? 'Signing in…' : 'Sign in'}
+          {pending ? 'Logging in…' : 'Login'}
         </button>
       </form>
 
@@ -220,7 +220,7 @@ export function LoginPage({ onSignIn }: LoginPageProps) {
           className="button button--quiet button--small"
           onClick={handleNewSession}
         >
-          New Datadog session
+          End Datadog Session
         </button>
         {sessionNote && <p className="session-note">{sessionNote}</p>}
       </div>

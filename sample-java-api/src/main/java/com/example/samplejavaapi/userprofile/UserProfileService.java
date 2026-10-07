@@ -1,10 +1,12 @@
 package com.example.samplejavaapi.userprofile;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +34,7 @@ public class UserProfileService {
   private static final Map<String, UserProfile> DIRECTORY =
       Stream.of(
               new UserProfile(
+                  "db214327-40ea-4526-bed6-896c099f582c",
                   "lloyd.williams@datadoghq.com",
                   "Lloyd",
                   "Williams",
@@ -44,6 +47,7 @@ public class UserProfileService {
                   List.of("admin", "flag-editor"),
                   new Account("acct-1001", "Datadog", "enterprise")),
               new UserProfile(
+                  "28ea71b5-164b-4eb6-aef4-f4f793d4f086",
                   "jane@example.com",
                   "Jane",
                   "Doe",
@@ -56,6 +60,7 @@ public class UserProfileService {
                   List.of("user"),
                   EXAMPLE_CORP),
               new UserProfile(
+                  "9d3855e5-319d-44c0-b4a3-d885983c09bd",
                   "sam@example.com",
                   "Sam",
                   "Rivera",
@@ -119,6 +124,7 @@ public class UserProfileService {
     String lastName = words.size() > 1 ? String.join(" ", words.subList(1, words.size())) : "User";
 
     return new UserProfile(
+        deriveId(email),
         email,
         firstName,
         lastName,
@@ -130,6 +136,17 @@ public class UserProfileService {
         LocalDate.of(2024, 1, 1),
         List.of("user"),
         deriveAccount(domain));
+  }
+
+  /**
+   * Stable UUID for a derived profile, from the normalized email.
+   *
+   * Deliberately derived rather than random: a user id that changed on every
+   * request would give the same person a new identity each sign-in, fragmenting
+   * their sessions in RUM. Same 8-4-4-4-12 shape as the seeded ids.
+   */
+  private static String deriveId(String email) {
+    return UUID.nameUUIDFromBytes(email.getBytes(StandardCharsets.UTF_8)).toString();
   }
 
   /**

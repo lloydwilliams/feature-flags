@@ -1,8 +1,12 @@
 package com.example.samplejavaapi.userprofile;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.jayway.jsonpath.JsonPath;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +25,7 @@ class UserProfileControllerTest {
     mockMvc
         .perform(get("/api/users/profile").param("email", "jane@example.com"))
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value("28ea71b5-164b-4eb6-aef4-f4f793d4f086"))
         .andExpect(jsonPath("$.email").value("jane@example.com"))
         .andExpect(jsonPath("$.firstName").value("Jane"))
         .andExpect(jsonPath("$.jobTitle").value("Platform Engineer"))
@@ -29,6 +34,40 @@ class UserProfileControllerTest {
         .andExpect(jsonPath("$.account.id").value("acct-2002"))
         .andExpect(jsonPath("$.account.name").value("Example Corp"))
         .andExpect(jsonPath("$.account.plan").value("pro"));
+  }
+
+  @Test
+  void idsUseUuidFormat() throws Exception {
+    String uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "sam@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(matchesPattern(uuid)));
+    mockMvc
+        .perform(get("/api/users/profile").param("email", "ada.lovelace@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(matchesPattern(uuid)));
+  }
+
+  @Test
+  void derivedIdIsStableAcrossRequests() throws Exception {
+    // A changing id would give the same person a new identity on every sign-in.
+    String first =
+        mockMvc
+            .perform(get("/api/users/profile").param("email", "grace.hopper@example.com"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    String second =
+        mockMvc
+            .perform(get("/api/users/profile").param("email", "  Grace.Hopper@Example.com "))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    assertThat(JsonPath.<String>read(first, "$.id"))
+        .isEqualTo(JsonPath.read(second, "$.id"));
   }
 
   @Test

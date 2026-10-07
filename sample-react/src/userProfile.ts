@@ -13,6 +13,8 @@ export interface Account {
 
 /** Mirrors the `UserProfile` record returned by the Java API. */
 export interface UserProfile {
+  /** Stable UUID for this user, e.g. "fd1375d5-f1e3-4fe4-97d3-efffe1ce44d7". */
+  id: string
   email: string
   firstName: string
   lastName: string
