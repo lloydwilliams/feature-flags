@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.jayway.jsonpath.JsonPath;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -34,6 +36,24 @@ class UserProfileControllerTest {
         .andExpect(jsonPath("$.account.id").value("acct-2002"))
         .andExpect(jsonPath("$.account.name").value("Example Corp"))
         .andExpect(jsonPath("$.account.plan").value("pro"));
+  }
+
+  @Test
+  void seededDirectoryUsersAllCarryAUuid() throws Exception {
+    // Spot-checks the bulk entries added via the compact `seeded` helper, which
+    // is where a typo in a generated id or email would otherwise go unnoticed.
+    String uuid = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+    for (String email :
+        List.of(
+            "amara.okonkwo@northwind.example",
+            "devin.park@contoso.example",
+            "ethan.whitfield@umbrella.example")) {
+      mockMvc
+          .perform(get("/api/users/profile").param("email", email))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.id").value(matchesPattern(uuid)))
+          .andExpect(jsonPath("$.email").value(email));
+    }
   }
 
   @Test
