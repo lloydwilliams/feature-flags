@@ -17,3 +17,6 @@ dist/
 
 # Archives - build output or agent config bundles, not source
 *.zip
+
+# Runtime log output
+logs/

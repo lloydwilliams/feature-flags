@@ -187,9 +187,19 @@ export default function App() {
       }
     }
 
+    // The profile's UUID is the RUM user id, so sessions key on a stable
+    // identifier rather than on an address that can change.
+    //
+    // When the profile call failed there is no UUID, so this falls back to the
+    // email rather than leaving the session anonymous. That does mean one person
+    // can appear as two RUM users - `usr.id` a UUID when the API is up, their
+    // email when it is not - so `user_id_source` below records which happened,
+    // making the split visible in Datadog instead of silent.
+    const userId = fetched?.id ?? email
+
     // `site` lands as a custom user attribute, queryable in RUM as `usr.site`.
     // Unrelated to the SDK's own `site` init option (datadoghq.com).
-    datadogRum.setUser({ id: email, email, site })
+    datadogRum.setUser({ id: userId, email, site })
 
     // The account comes from the profile response, so it can only be set once
     // that call has succeeded. `id` is the only field RUM requires; `name` and
@@ -206,7 +216,7 @@ export default function App() {
     // provider has refetched its configuration for this user before we render
     // gated UI - otherwise the first paint shows the anonymous evaluation and
     // visibly flips a moment later.
-    await identifyUser(email, site)
+    await identifyUser(email, site, userId)
 
     // The outcome log, emitted whether or not the profile call succeeded: the
     // earlier lines cover the click and any failure, this one records that
@@ -228,6 +238,11 @@ export default function App() {
     datadogLogs.logger.info('Sign in complete', {
       site,
       profile_loaded: fetched !== null,
+      user_id: userId,
+      // Keyed on the id actually being present, not merely on the call
+      // succeeding: an API that answers 200 without an `id` - version skew
+      // between this app and the service - still means the email was used.
+      user_id_source: fetched?.id ? 'profile' : 'email-fallback',
       account_id: fetched?.account.id ?? null,
       flags,
     })

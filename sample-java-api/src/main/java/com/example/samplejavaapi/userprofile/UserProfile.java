@@ -5,6 +5,8 @@ import java.util.List;
 
 /** A user profile returned by the getUserProfile endpoint. */
 public record UserProfile(
+    /** Stable UUID for this user. Suitable as the Datadog RUM user id. */
+    String id,
     String email,
     String firstName,
     String lastName,

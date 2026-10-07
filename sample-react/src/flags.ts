@@ -53,12 +53,22 @@ export const anonymousContext = {
  * target on them.
  *
  * Attribute names here are what you reference in Datadog's targeting rules:
- * flat keys like `email` and `site` - not the `usr.`-prefixed form used when
- * querying RUM events.
+ * flat keys like `email`, `site` and `userId` - not the `usr.`-prefixed form
+ * used when querying RUM events.
  *
- * `targetingKey` switches from the anonymous UUID to the email, which is the
- * point (rules and percentage rollouts follow the person, not the browser) but
- * does mean a user can cross a rollout boundary at sign-in.
+ * `targetingKey` is the site, which makes the site the unit of rollout: it is
+ * the key Datadog shards on, so a percentage rollout covers that percentage of
+ * *sites*, and everyone at a given site sees the same thing. Two consequences
+ * worth knowing:
+ *
+ * - Percentages are coarse. With a few dozen sites, a 50% rollout hashes a few
+ *   dozen keys, so the share of *users* it reaches can sit well away from 50%.
+ * - Per-user rollouts are not possible while this is the key. Rules can still
+ *   single out a person via the `email` or `userId` attributes; only sharding
+ *   is affected.
+ *
+ * `site` is also passed as a plain attribute, so rules written against `site`
+ * keep working rather than depending on targetingKey being surfaced as `id`.
  *
  * The provider also derives these from the RUM user automatically, but setting
  * them explicitly wins over that and does not depend on RUM's global being
@@ -67,11 +77,13 @@ export const anonymousContext = {
 export async function identifyUser(
   email: string,
   userSite: string,
+  userId: string,
 ): Promise<void> {
   await OpenFeature.setContext({
-    targetingKey: email,
-    email,
+    targetingKey: userSite,
     site: userSite,
+    email,
+    userId,
   })
 }
 
