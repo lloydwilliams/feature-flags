@@ -45,7 +45,18 @@ flags enabled in it.
 
 ## Run
 
-Start the API first (`../sample-java-api/run-sample-java-api.sh`), then:
+From the repo root, start the API and the app together:
+
+```bash
+./run-flutter-stack.sh
+```
+
+It starts `sample-java-api`, waits until it answers on `:8080`, then runs
+`run-sample-flutter.sh`. Quitting the app (`q` or Ctrl+C) stops the API too.
+An API that is already running is reused and left running.
+
+To run the app on its own, start the API yourself
+(`../sample-java-api/run-sample-java-api.sh`), then:
 
 ```bash
 ./run-sample-flutter.sh
