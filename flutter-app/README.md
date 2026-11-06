@@ -56,6 +56,11 @@ attached, then runs the app with `.env.local`. Extra arguments pass through to
 `flutter run` (`--release`, `-d <device>`). `./prod-sample-flutter.sh` reports
 `version:2.0.0` to match the other prod scripts.
 
+The emulator is created with the hardware keyboard on, so typing on the Mac
+goes into the app's fields (click a field first). For an emulator created
+before that, set `hw.keyboard=yes` in
+`~/.android/avd/sample_flutter.avd/config.ini` and restart it.
+
 The emulator reaches the Mac's `localhost:8080` as `10.0.2.2:8080`, which is
 the default `API_BASE_URL`. On a physical device, run
 `adb reverse tcp:8080 tcp:8080` and set `API_BASE_URL=http://localhost:8080`.
