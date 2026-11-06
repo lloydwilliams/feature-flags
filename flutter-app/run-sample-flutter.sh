@@ -16,6 +16,9 @@ if ! adb devices | grep -q -E 'device$'; then
     echo "Creating emulator $AVD_NAME …"
     echo no | avdmanager create avd -n "$AVD_NAME" \
       -k "system-images;android-36;google_apis;arm64-v8a" -d pixel_8
+    # avdmanager defaults this to no, which ignores the Mac's keyboard.
+    sed -i '' 's/^hw.keyboard=no$/hw.keyboard=yes/' \
+      "$HOME/.android/avd/$AVD_NAME.avd/config.ini"
   fi
   echo "Starting emulator $AVD_NAME …"
   emulator -avd "$AVD_NAME" -no-snapshot-save >/dev/null 2>&1 &
