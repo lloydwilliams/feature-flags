@@ -21,9 +21,11 @@ export DD_TRACE_AGENT_PORT=8136
 export DD_DOGSTATSD_PORT=8135
 
 # Unified service tagging. env matters for flags too: the provider fetches the
-# flag configuration for this environment.
+# flag configuration for this environment. flutter, the env flutter-app
+# reports (see its .env.example), so the API and the app it serves resolve
+# flags against the same Datadog environment.
 export DD_SERVICE="${DD_SERVICE:-sample-go-api}"
-export DD_ENV="${DD_ENV:-dev}"
+export DD_ENV="${DD_ENV:-flutter}"
 export DD_VERSION="${DD_VERSION:-1.0.0}"
 
 # Already on via tracer.WithRuntimeMetrics() in main.go; set here too so it is
