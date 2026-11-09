@@ -78,8 +78,11 @@ every 30s using `DD_API_KEY`. That means:
 
 - **`DD_API_KEY` is the only requirement.** Flags work even when no Agent is running.
   Traces, metrics, and logs still go through the Agent.
-- Flag configuration is fetched for `DD_ENV`. The run script sets this to `dev`, the same
-  environment the Java service uses.
+- Flag configuration is fetched for `DD_ENV`. The run script defaults it to `flutter`, the
+  environment flutter-app reports, so the app and its API resolve flags against the same
+  rules. The Java service uses `dev`, so run `DD_ENV=dev ./sample-go-api/run-sample-go-api.sh`
+  to match that instead. `flutter` must exist as an environment in Datadog Feature Flags,
+  or every flag resolves to its default.
 - To use the Agent instead, set `DD_FEATURE_FLAGS_CONFIGURATION_SOURCE=remote_config`.
   The tracer is already started before the provider, which is what that mode needs.
 - `DD_FEATURE_FLAGS_ENABLED=false` swaps in a no-op provider (a kill switch).
