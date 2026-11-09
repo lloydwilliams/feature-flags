@@ -53,9 +53,12 @@ export DD_APPSEC_ENABLED=true
 # Exports metrics over OTLP, a separate path from the DogStatsD one above, to
 # http://localhost:4318/v1/metrics by default.
 #
-# That endpoint needs an OTLP receiver listening. Nothing answers on 4317 or
-# 4318 here and this Agent's /info lists no OTLP endpoint, so until
-# otlp_config.receiver is enabled in datadog.yaml the tracer logs
+# This also carries the server-side flag evaluation metric
+# (feature_flag.evaluations), together with the opentelemetry-sdk-metrics and
+# opentelemetry-exporter-otlp dependencies in pom.xml.
+#
+# That endpoint needs the Agent's OTLP receiver (otlp_config.receiver in
+# datadog.yaml, HTTP on 4318). Without it the tracer logs
 #   OTLP export to http://localhost:4318/v1/metrics failed with exception:
 #   java.net.ConnectException ... (Will not log warnings for 5 minutes)
 # and drops them. The app itself is unaffected.
