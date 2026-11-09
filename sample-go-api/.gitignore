@@ -1,0 +1,6 @@
+# Built binary, from run-sample-go-api.sh or go build -o bin/
+bin/
+
+# Log output
+logs/
+*.log
