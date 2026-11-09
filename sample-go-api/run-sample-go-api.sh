@@ -36,6 +36,18 @@ export DD_RUNTIME_METRICS_ENABLED=true
 # shows which variant served it. Off by default; may affect APM billing.
 export DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED=true
 
+# Server-side flag evaluation metrics: the provider counts every evaluation as
+# feature_flag.evaluations (tagged by flag key, variant, reason, allocation)
+# and exports it over OTLP every 10s. Without this the counter is a no-op.
+# Unlike Java, Go needs no extra dependency - the exporter is in dd-trace-go.
+#
+# OTLP is a separate path from the trace and DogStatsD ports above: it goes to
+# the Agent's OTLP receiver (otlp_config.receiver in datadog.yaml), HTTP on
+# 4318. Explicit so it matches sample-java-api and survives a DD_AGENT_HOST.
+export DD_METRICS_OTEL_ENABLED=true
+export OTEL_EXPORTER_OTLP_ENDPOINT="${OTEL_EXPORTER_OTLP_ENDPOINT:-http://localhost:4318}"
+export OTEL_EXPORTER_OTLP_PROTOCOL="${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}"
+
 # Server-side feature flags need a Datadog API key, which is not committed.
 # Export DD_API_KEY in your shell, or put it in sample-go-api/.env.local -
 # gitignored by the root .gitignore's .env.local rule.

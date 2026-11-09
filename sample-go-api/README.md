@@ -115,6 +115,30 @@ each evaluation is recorded on the request's root span. A trace then shows which
 served it. Remove that line if the extra span tags are unwanted, since they can affect APM
 billing.
 
+### Evaluation metrics
+
+The run script sets `DD_METRICS_OTEL_ENABLED=true`, which turns on Datadog's
+[server-side flag evaluation metrics](https://docs.datadoghq.com/feature_flags/guide/server_flag_evaluation_metrics/).
+The provider counts every evaluation as `feature_flag.evaluations` and exports it over OTLP
+every 10 seconds. The tags are `feature_flag.key`, `feature_flag.result.variant`,
+`feature_flag.result.reason`, and `feature_flag.result.allocation_key` (when present), plus
+`error.type` on errors. Unlike Java, Go needs no extra dependency: the OTLP exporter ships in
+dd-trace-go (2.8.0 or later).
+
+The metrics go to the Agent's OTLP receiver at `http://localhost:4318` (OTLP/HTTP), not to the
+trace or DogStatsD ports. That needs `otlp_config.receiver.protocols.http` enabled in
+`datadog.yaml`. Override the destination with `OTEL_EXPORTER_OTLP_ENDPOINT`.
+
+To check it, search Metrics Explorer for `feature_flag.evaluations`, or graph:
+
+```
+sum:feature_flag.evaluations{service:sample-go-api} by {feature_flag.key,feature_flag.result.variant}
+```
+
+By default only an hour of history is kept. To keep more, enable **Historical Metrics** for
+the metric in the Metrics Catalog. Evaluations without a key count too, with
+`reason:error` and `error.type:provider_not_ready`.
+
 ## Configuration
 
 All configuration comes from environment variables, which stand in for `application.yml`:
