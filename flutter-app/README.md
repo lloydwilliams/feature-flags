@@ -51,9 +51,14 @@ From the repo root, start the API and the app together:
 ./run-flutter-stack.sh
 ```
 
-It starts `sample-java-api`, waits until it answers on `:8080`, then runs
+It starts [`sample-go-api`](../sample-go-api/README.md) on `:8080` (the port
+the app already expects), waits until it answers, then runs
 `run-sample-flutter.sh`. Quitting the app (`q` or Ctrl+C) stops the API too.
-An API that is already running is reused and left running.
+A `sample-go-api` that is already running on `:8080` is reused and left
+running. Anything else on that port, such as `sample-java-api` from
+`run-sample-stack.sh`, stops the script with a message instead, so the app is
+never quietly run against the other backend. The two APIs answer identically,
+so the Java one still works with the app if you start it yourself.
 
 To run the app on its own, start the API yourself
 (`../sample-java-api/run-sample-java-api.sh`), then:
